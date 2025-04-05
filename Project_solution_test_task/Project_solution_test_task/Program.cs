@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
+using System.Runtime.Intrinsics.X86;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using System.Net.Sockets;
 
 
 namespace Project_solution_test_task
@@ -12,28 +15,100 @@ namespace Project_solution_test_task
 	{
 		static private void Main(string[] args)
 		{
-			int port = GetInputInt("Enter port: ");
+			bool isUseAutomaticPort = QuestionUserYesOrNot("use automatic port ?");
 
-			string httpsPassword = CreatePassword(port);
+			int port;
 
-			RaiseServer(port);
+			if (!isUseAutomaticPort)
+			{
+				port = GetInputInt("Enter port: ");
+			}
+			else
+			{
+				port = GetFreePort();
+			}
+
+			string url = $"https://localhost:{port}/";
+			RaiseServer(url);
+
+			Console.Clear();
+
+			Console.Write("Server -> ");
+
+			ConsoleColorGood();
+			Console.Write(url + "\n");
+			Console.ResetColor();
+
+			while (true) 
+			{ 
+				Task.Delay(10); // кастыль, чтоб сервак не закрылся
+			}
 		}
 
-		static private void RaiseServer(int port)
+		static private async void RaiseServer(string url)
 		{
-			var host = new WebHostBuilder()
+			IWebHost host = new WebHostBuilder()
 			.UseKestrel()
-			.UseUrls("https://localhost:5000")
+			.UseUrls(url)
 			.Configure(app =>
 			{
 				app.Run(async context =>
 				{
-					await context.Response.WriteAsync("Hello from Kestrel");
+					await context.Response.WriteAsync("Hello user, this httpS server !!!");
 				});
 			})
+			.SuppressStatusMessages(true)
 			.Build();
 
-			host.Run();
+			await Task.Run(() =>
+			{
+				host.RunAsync();
+			});
+		}
+
+		public static bool QuestionUserYesOrNot(string question = "what is the meaning of life ?", bool isClear = true)
+		{
+			if (isClear) Console.Clear();
+
+			Console.Write(question);
+
+			Console.ResetColor();
+			Console.Write(" ");
+
+			ConsoleColorError();
+			Console.Write("N");
+
+			Console.ResetColor();
+			Console.Write(" / ");
+
+			ConsoleColorGood();
+			Console.Write("Y");
+
+			Console.ResetColor();
+			Console.Write(" ");
+
+			while (true)
+			{
+				ConsoleKey buffer = Console.ReadKey(true).Key;
+
+				if (buffer == ConsoleKey.Y)
+				{
+					return true;
+				}
+				else if (buffer == ConsoleKey.N)
+				{
+					return false;
+				}
+			}
+		}
+
+		private static int GetFreePort() // кастыль
+		{
+			var listener = new TcpListener(IPAddress.Loopback, 0);
+			listener.Start();
+			int port = ((IPEndPoint)listener.LocalEndpoint).Port;
+			listener.Stop();
+			return port;
 		}
 
 		private static string CreatePassword(int port)
