@@ -7,16 +7,18 @@ using Microsoft.Extensions.Hosting;
 using System.Runtime.Intrinsics.X86;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using System.Net.Sockets;
+using Microsoft.Extensions.DependencyInjection;
+using Project_solution_test_task.Controllers.Interface;
+using Project_solution_test_task.Controllers.Implementations;
 
 
 namespace Project_solution_test_task
 {
 	static class Program
 	{
-		static private void Main(string[] args)
+		private static void Main(string[] args)
 		{
 			bool isUseAutomaticPort = QuestionUserYesOrNot("use automatic port ?");
-
 			int port;
 
 			if (!isUseAutomaticPort)
@@ -32,7 +34,6 @@ namespace Project_solution_test_task
 			RaiseServer(url);
 
 			Console.Clear();
-
 			Console.Write("Server -> ");
 
 			ConsoleColorGood();
@@ -50,20 +51,34 @@ namespace Project_solution_test_task
 			IWebHost host = new WebHostBuilder()
 			.UseKestrel()
 			.UseUrls(url)
+			.ConfigureServices(services => 
+			{
+				//реализации сервисов
+				services.AddScoped<IMyService, MyService>();
+				services.AddScoped<IMyService1, MyService1>();
+
+				services.AddControllers();
+			})
 			.Configure(app =>
 			{
-				app.Run(async context =>
+				//сервисы
+				app.Run(async  context =>
 				{
-					await context.Response.WriteAsync("Hello user, this httpS server !!!");
+					await context.Response.WriteAsync(context.RequestServices.GetRequiredService<IMyService>().MyResponce());
+					await context.Response.WriteAsync(context.RequestServices.GetRequiredService<IMyService1>().MyResponce1());
+				});
+
+				// контролеры
+				app.UseRouting();
+				app.UseEndpoints(endpoints =>
+				{
+					endpoints.MapControllers();
 				});
 			})
 			.SuppressStatusMessages(true)
 			.Build();
 
-			await Task.Run(() =>
-			{
-				host.RunAsync();
-			});
+			await host.RunAsync();
 		}
 
 		public static bool QuestionUserYesOrNot(string question = "what is the meaning of life ?", bool isClear = true)
