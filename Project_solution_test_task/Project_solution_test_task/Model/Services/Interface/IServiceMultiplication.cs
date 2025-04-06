@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Project_solution_test_task.Services.Interface
+namespace Project_solution_test_task.Model.Services.Interface
 {
 	public interface IServiceMultiplication
 	{

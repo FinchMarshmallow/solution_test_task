@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Project_solution_test_task.Services.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +9,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
+using Project_solution_test_task.Model.Services.Interface;
 
 namespace Project_solution_test_task.Controller
 {
@@ -39,7 +39,7 @@ namespace Project_solution_test_task.Controller
 		public IActionResult Addition(double a, double b)
 		{
 			Console.WriteLine($"Addition: {a}, {b}");
-			return Ok(new { Result = a + b });
+			return Ok(new { Result = addition.Operating(a, b) });
 		}
 
 		[HttpGet("division/{a}/{b}")]

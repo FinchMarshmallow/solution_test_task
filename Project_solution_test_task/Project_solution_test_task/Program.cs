@@ -8,18 +8,21 @@ using System.Runtime.Intrinsics.X86;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using System.Net.Sockets;
 using Microsoft.Extensions.DependencyInjection;
-using Project_solution_test_task.Services.Interface;
-using Project_solution_test_task.Services.Implementations;
+using Project_solution_test_task.Model.Services.Implementations;
+using Project_solution_test_task.Model.Services.Interface;
 
 
 namespace Project_solution_test_task
 {
 	static class Program
 	{
+		public static string filePath = "", url	= "";
+
+		public static int port;
+
 		private static void Main(string[] args)
 		{
 			bool isUseAutomaticPort = QuestionUserYesOrNot("use automatic port ?");
-			int port;
 
 			if (!isUseAutomaticPort)
 			{
@@ -30,7 +33,7 @@ namespace Project_solution_test_task
 				port = GetFreePort();
 			}
 
-			string url = $"https://localhost:{port}/";
+			url = $"https://localhost:{port}/";
 			RaiseServer(url);
 
 			Console.Clear();
@@ -40,17 +43,27 @@ namespace Project_solution_test_task
 			Console.Write(url + "\n");
 			Console.ResetColor();
 
+			filePath = FindFilePath();
+
 			while (true) 
 			{ 
 				Task.Delay(10); // кастыль, чтоб сервак не закрылся
 			}
 		}
 
-		static private async void RaiseServer(string url)
+		private static string FindFilePath()
+		{
+			string fullPart = AppDomain.CurrentDomain.BaseDirectory;
+			int binPos = fullPart.IndexOf("bin");
+			return fullPart.Substring(0, binPos);
+		}
+
+		private static async void RaiseServer(string url)
 		{
 			IWebHost host = new WebHostBuilder()
 			.UseKestrel()
 			.UseUrls(url)
+			.UseWebRoot("wwwroot")
 			.ConfigureServices(services =>
 			{
 				services.AddScoped<IServiceAddition, ServiceAddition>();
@@ -61,17 +74,12 @@ namespace Project_solution_test_task
 			})
 			.Configure(app =>
 			{
+				app.UseStaticFiles();
 				app.UseRouting();
 				app.UseEndpoints(endpoints =>
 				{
-					endpoints.MapGet("/", async context =>
-					{
-						await context.Response.WriteAsync("Server is running");
-					});
-
 					endpoints.MapControllers();
 				});
-
 			})
 			.SuppressStatusMessages(true)
 			.Build();
@@ -140,7 +148,7 @@ namespace Project_solution_test_task
 			return new string(chars);
 		}
 
-		static private int GetInputInt(string header = "Enter int: ", bool isClearConsol = true)
+		private static int GetInputInt(string header = "Enter int: ", bool isClearConsol = true)
 		{
 			string? input = null;
 			string 
@@ -183,19 +191,19 @@ namespace Project_solution_test_task
 			}
 		}
 
-		static public void ConsoleColorError()
+		public static void ConsoleColorError()
 		{
 			Console.BackgroundColor = ConsoleColor.Red;
 			Console.ForegroundColor = ConsoleColor.White;
 		}
 
-		static public void ConsoleColorWarning()
+		public static void ConsoleColorWarning()
 		{
 			Console.BackgroundColor = ConsoleColor.DarkYellow;
 			Console.ForegroundColor = ConsoleColor.White;
 		}
 
-		static public void ConsoleColorGood()
+		public static void ConsoleColorGood()
 		{
 			Console.BackgroundColor = ConsoleColor.DarkGreen;
 			Console.ForegroundColor = ConsoleColor.White;
