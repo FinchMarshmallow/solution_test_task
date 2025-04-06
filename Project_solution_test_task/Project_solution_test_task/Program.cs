@@ -8,8 +8,8 @@ using System.Runtime.Intrinsics.X86;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using System.Net.Sockets;
 using Microsoft.Extensions.DependencyInjection;
-using Project_solution_test_task.Controllers.Interface;
-using Project_solution_test_task.Controllers.Implementations;
+using Project_solution_test_task.Services.Interface;
+using Project_solution_test_task.Services.Implementations;
 
 
 namespace Project_solution_test_task
@@ -51,29 +51,27 @@ namespace Project_solution_test_task
 			IWebHost host = new WebHostBuilder()
 			.UseKestrel()
 			.UseUrls(url)
-			.ConfigureServices(services => 
+			.ConfigureServices(services =>
 			{
-				//реализации сервисов
-				services.AddScoped<IMyService, MyService>();
-				services.AddScoped<IMyService1, MyService1>();
-
+				services.AddScoped<IServiceAddition, ServiceAddition>();
+				services.AddScoped<IServiceDivision, ServiceDivision>();
+				services.AddScoped<IServiceMultiplication, ServiceMultiplication>();
+				services.AddScoped<IServiceSubtraction, ServiceSubtraction>();
 				services.AddControllers();
 			})
 			.Configure(app =>
 			{
-				//сервисы
-				app.Run(async  context =>
-				{
-					await context.Response.WriteAsync(context.RequestServices.GetRequiredService<IMyService>().MyResponce());
-					await context.Response.WriteAsync(context.RequestServices.GetRequiredService<IMyService1>().MyResponce1());
-				});
-
-				// контролеры
 				app.UseRouting();
 				app.UseEndpoints(endpoints =>
 				{
+					endpoints.MapGet("/", async context =>
+					{
+						await context.Response.WriteAsync("Server is running");
+					});
+
 					endpoints.MapControllers();
 				});
+
 			})
 			.SuppressStatusMessages(true)
 			.Build();
