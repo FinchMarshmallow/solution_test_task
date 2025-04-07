@@ -1,0 +1,66 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+	<link rel="shortcut icon" href="/View/wwwroot/miezzle/favicon.ico" type="image/x-icon">
+</head>
+<body>
+	<script src="/View/wwwroot/miezzle/miezzle.js" async></script>
+
+	<div class="form">
+		<div class="form_fields">
+
+
+			<div class="form_field">
+				<label class="form_field_label">
+					authorization type
+				</label>
+
+				<select class="form_field_input">
+					<option>sign in</option>
+					<option>sign up user</option>
+					<option>sign up admin</option>
+				</select>
+			</div>
+
+
+			<div class="form_field">
+				<label class="form_field_label">
+					email:
+				</label>
+				<input type="email" id="form_field_email-input" class="form_field_label-input" />
+			</div>
+
+
+			<div class="form_field">
+				<label class="form_field_label">
+					password:
+				</label>
+				<input type="password" id="form_field_password-input" class="form_field_label-input" required =""/>
+
+				<button type="button" id="form_field_password-button" class="form_field_password-button" onclick="hidePassword()">
+					🙈
+				</button>
+			</div>
+
+
+		</div>
+
+
+		<div class="form_result"></div>
+
+
+		<button type="button" id="form_continue-button" class="form_continue-button">
+			continue
+		</button>
+
+
+		<button type="button" class="form_continue_without_registration-button">
+			continue without registration
+		</button>
+	</div>
+	<input type="hidden" id="csrfToken" name="csrfToken">
+</body>
+</html>

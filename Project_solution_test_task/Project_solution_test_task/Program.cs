@@ -10,6 +10,7 @@ using System.Net.Sockets;
 using Microsoft.Extensions.DependencyInjection;
 using Project_solution_test_task.Model.Services.Implementations;
 using Project_solution_test_task.Model.Services.Interface;
+using Microsoft.Extensions.FileProviders;
 
 
 namespace Project_solution_test_task
@@ -17,7 +18,6 @@ namespace Project_solution_test_task
 	static class Program
 	{
 		public static string filePath = "", url	= "";
-
 		public static int port;
 
 		private static void Main(string[] args)
@@ -33,14 +33,15 @@ namespace Project_solution_test_task
 				port = GetFreePort();
 			}
 
-			url = $"https://localhost:{port}/";
+			//url = $"https://localhost:{port}/";
+			url = "https://localhost:51785/";
 			RaiseServer(url);
 
 			Console.Clear();
 			Console.Write("Server -> ");
 
 			ConsoleColorGood();
-			Console.Write(url + "\n");
+			Console.Write(url);
 			Console.ResetColor();
 
 			filePath = FindFilePath();
@@ -61,7 +62,13 @@ namespace Project_solution_test_task
 		private static async void RaiseServer(string url)
 		{
 			IWebHost host = new WebHostBuilder()
-			.UseKestrel()
+			.UseKestrel(options =>
+			{
+				options.ConfigureHttpsDefaults(httpsOptions =>
+				{
+					httpsOptions.SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13;
+				});
+			})
 			.UseUrls(url)
 			.UseWebRoot("wwwroot")
 			.ConfigureServices(services =>
@@ -74,7 +81,20 @@ namespace Project_solution_test_task
 			})
 			.Configure(app =>
 			{
-				app.UseStaticFiles();
+				app.UseHttpsRedirection();
+				app.UseStaticFiles(new StaticFileOptions
+				{
+					OnPrepareResponse = ctx =>
+					{
+						//Console.WriteLine($"Serving static file: {ctx.File.PhysicalPath}");
+					},
+
+					FileProvider = new PhysicalFileProvider
+					(
+						Path.Combine(Directory.GetCurrentDirectory(), filePath)
+					),
+					RequestPath = filePath
+				});
 				app.UseRouting();
 				app.UseEndpoints(endpoints =>
 				{

@@ -11,19 +11,19 @@ namespace Project_solution_test_task.Controller
 {
 	[ApiController]
 	[Route("/")]
-	public class ControllerView : ControllerBase
+	public class ViewController : ControllerBase
 	{
-		private readonly string
-			muzzle = $"{Program.filePath}/wwwroot/index.html";
+		private readonly string 
+			muzzle = $"{Program.filePath}/View/wwwroot/miezzle/";
 
 
-		[HttpGet("/")] // главная страница
+		[HttpGet("/")]
 		public ContentResult Muzzle()
 		{
 			return new ContentResult
 			{
 				ContentType = "text/html",
-				Content = System.IO.File.ReadAllText(muzzle),
+				Content = System.IO.File.ReadAllText(muzzle + "miezzle.html"),
 				StatusCode = 200
 			};
 		}
