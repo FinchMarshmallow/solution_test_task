@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Project_solution_test_task.Model.Services.Implementations;
 using Project_solution_test_task.Model.Services.Interface;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 
 namespace Project_solution_test_task
@@ -22,7 +23,7 @@ namespace Project_solution_test_task
 
 		private static void Main(string[] args)
 		{
-			bool isUseAutomaticPort = QuestionUserYesOrNot("use automatic port ?");
+			bool isUseAutomaticPort = true; // QuestionUserYesOrNot("use automatic port ?");
 
 			if (!isUseAutomaticPort)
 			{
@@ -77,6 +78,16 @@ namespace Project_solution_test_task
 				services.AddScoped<IServiceDivision, ServiceDivision>();
 				services.AddScoped<IServiceMultiplication, ServiceMultiplication>();
 				services.AddScoped<IServiceSubtraction, ServiceSubtraction>();
+
+				// кука для JWT
+				services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+				.AddCookie(options =>
+				{
+					options.Cookie.HttpOnly = true;
+					options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+					options.Cookie.SameSite = SameSiteMode.Strict;
+				});
+
 				services.AddControllers();
 			})
 			.Configure(app =>
@@ -86,7 +97,10 @@ namespace Project_solution_test_task
 				{
 					OnPrepareResponse = ctx =>
 					{
-						//Console.WriteLine($"Serving static file: {ctx.File.PhysicalPath}");
+						ConsoleColorGood();
+						Console.WriteLine("\nuser Get static files:");
+						Console.ResetColor();
+						Console.WriteLine($"\n{ctx.File.PhysicalPath}");
 					},
 
 					FileProvider = new PhysicalFileProvider
@@ -100,6 +114,7 @@ namespace Project_solution_test_task
 				{
 					endpoints.MapControllers();
 				});
+
 			})
 			.SuppressStatusMessages(true)
 			.Build();
@@ -150,22 +165,6 @@ namespace Project_solution_test_task
 			int port = ((IPEndPoint)listener.LocalEndpoint).Port;
 			listener.Stop();
 			return port;
-		}
-
-		private static string CreatePassword(int port)
-		{
-			int corn = DateTime.UtcNow.Day * DateTime.UtcNow.Month * DateTime.UtcNow.Month * port;
-			Random rnd = new Random(corn);
-			int linght = rnd.Next(16, 64);
-
-			char[] chars = new char[linght];
-
-			for (int i = 0; i < linght; i++)
-			{
-				chars[i] = (char)rnd.Next(0, 256);
-			}
-
-			return new string(chars);
 		}
 
 		private static int GetInputInt(string header = "Enter int: ", bool isClearConsol = true)
