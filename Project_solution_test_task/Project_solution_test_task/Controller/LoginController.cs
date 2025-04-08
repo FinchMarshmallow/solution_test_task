@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Configuration;
@@ -18,47 +19,42 @@ namespace Project_solution_test_task.Controller
 	[Route("[controller]")]
 	public class LoginController : ControllerBase
 	{
-		private readonly IConfiguration config;
-
-		public LoginController(IConfiguration config)
-		{
-			this.config = config;
-		}
-
 		[HttpPost("/api/login")]
 		public IActionResult Post([FromBody] LoginData data)
 		{
 			if (!ModelState.IsValid) return BadRequest("error data");
 
-			string? token = "";
+			string
+				accessToken = string.Empty,
+				refreshToken = string.Empty;
 
-			try
+			if (DatabaseModel.TryLogin(data.Email, data.Password))
 			{
-				token = DatabaseModel.Login(data.Email, data.Password);
-			}
-			catch (Exception e)
-			{
-				Program.ConsoleColorError();
-				Console.WriteLine("\n"+ e.Message);
-				Console.ResetColor();
-
-				return Unauthorized(new { massage = "server problem" });
-			}
-
-			if (token == null ||  token.Length <= 3)
-			{
-				Program.ConsoleColorWarning();
-				Console.WriteLine("\nIncorrect email or password");
-				Console.ResetColor();
-
-				return BadRequest(new { message = "Incorrect email or password" });
+				accessToken = ManagerJWT.GenerateToken(data.Email, ManagerJWT.TypeToken.AccessToke);
+				refreshToken = ManagerJWT.GenerateToken(data.Email, ManagerJWT.TypeToken.RefreshToken);
 			}
 			else
 			{
-				Console.WriteLine($"\ndata user: email= {data.Email}, password= {data.Password}, token= {token}");
+				Program.ConsoleColorError();
+				Console.WriteLine("\nfail Try Login");
+				Console.ResetColor();
 
-				return Ok(new { massage = "good login" });
+				return Unauthorized(new { massage = "fail Try Login" });
 			}
+
+			Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
+			{
+				HttpOnly = true,
+				Secure = true,
+				SameSite = SameSiteMode.Strict,
+				Expires = DateTime.UtcNow.AddDays(7)
+			});
+
+			Program.ConsoleColorGood();
+			Console.WriteLine($"\nuser successfully login: \n\n token:\n{accessToken}\n\n{refreshToken}");
+			Console.ResetColor();
+
+			return Ok(new { accessToken });
 		}
 
 		public class LoginData
