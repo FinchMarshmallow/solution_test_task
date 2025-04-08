@@ -11,7 +11,9 @@ namespace Project_solution_test_task.Model
 	public static class DatabaseModel
 	{
 		private static Dictionary<string, string> users = new();
-		private static string secret = "my_super_secret_qwer1234";
+		private static string secret = string.Empty;
+
+		private const int liveTimeCookie = 30, liveTimeToken = 10;
 
 		static DatabaseModel()
 		{
@@ -35,9 +37,9 @@ namespace Project_solution_test_task.Model
 
 		public static string? Login(string email, string password)
 		{
-			if (users.TryGetValue(email, out var storedPass) && storedPass == password)
+			if (users.TryGetValue(email, out string? storedPass) && storedPass == password)
 			{
-				return GenerateToken(email, daysValid: 30);
+				return GenerateToken(email, liveTimeCookie);
 			}
 			return null;
 		}
