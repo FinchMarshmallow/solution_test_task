@@ -1,58 +1,55 @@
-﻿function hidePassword() {
+﻿function HidePassword()
+{
 	const passwordFild = document.getElementById('form_field_password-input')
-	const buttonFild = document.getElementById('form_field_password-button').value
+
+	icon0 = document.getElementById('form_field_password_icon0')
+	icon1 = document.getElementById('form_field_password_icon1')
 
 	if (passwordFild.type === 'password') {
 		passwordFild.type = 'text'
-		/*buttonFild = 🙉*/
+
+		icon0.hidden = true;
+		icon1.hidden = false;
 	}
 	else {
 		passwordFild.type = 'password'
-		/*buttonFild = 🙈*/
+
+		icon0.hidden = false;
+		icon1.hidden = true;
 	}
 }
 
-document.getElementById('form_continue-button').addEventListener('click', async function (e)
+async function Continue()
 {
-	e.preventDefault();
+	const email = document.getElementById('form_field_email-input').value
+	const password = document.getElementById('form_field_password-input').value
 
-	const email = document.getElementById("form_field_email-input").value
+	const resultMasage = document.getElementById('form_result')
 
-	const password = document.getElementById("form_field_password-input").value
-
-	//if (!email || !password) {
-	//	alert('null');
-	//	return;
-	//}
-
-	try
+	const responce = await fetch('/api/auth/login',
 	{
-		const response = await fetch('/api/login',
-		{
-			method: 'POST',
-			headers:
-			{
-				'Content-Type': 'application/json',
-				'X-CSRF-TOKEN': document.getElementById('csrfToken').value
-			},
-			body: JSON.stringify({ email, password })
-		});
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ email, password })
+	})
 
-		const result = await response.json();
-
-		if (!response.ok) throw new Error(result.message);
-
-		alert('good input');
-
-	}
-	catch (error)
+	if (responce.ok)
 	{
-		console.error('error json:', error);
-		alert(error.message);
+		const { accessToken } = await responce.json()
+		localStorage.setItem('accessToken', accessToken)
+
+		resultMasage.textContent = '✅ access token:\n' + accessToken +'\n'
 	}
-})
+	else
+	{
+		resultMasage.textContent = '❌ fail'
+	}
+}
+
+
+
 
 document.addEventListener('DOMContentLoaded', () =>
 {
-	document.getElementById('csrfToken').value = crypto.randomUUID();
+	document.getElementById('csrfToken').value = crypto.randomUUID()
 });

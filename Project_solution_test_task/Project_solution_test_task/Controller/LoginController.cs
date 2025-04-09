@@ -15,14 +15,14 @@ using System.Threading.Tasks;
 
 namespace Project_solution_test_task.Controller
 {
+	[Route("api/auth")]
 	[ApiController]
-	[Route("[controller]")]
 	public class LoginController : ControllerBase
 	{
-		[HttpPost("/api/login")]
-		public IActionResult Post([FromBody] LoginData data)
+		[HttpPost("login")]
+		public IActionResult Login([FromBody] LoginData data)
 		{
-			if (!ModelState.IsValid) return BadRequest("error data");
+			if (!ModelState.IsValid) return Unauthorized();
 
 			string
 				accessToken = string.Empty,
@@ -30,8 +30,8 @@ namespace Project_solution_test_task.Controller
 
 			if (DatabaseModel.TryLogin(data.Email, data.Password))
 			{
-				accessToken = ManagerJWT.GenerateToken(data.Email, ManagerJWT.TypeToken.AccessToke);
-				refreshToken = ManagerJWT.GenerateToken(data.Email, ManagerJWT.TypeToken.RefreshToken);
+				accessToken = ManagerJWT.GenerateToken(data.Email, ManagerJWT.TypeToken.Access);
+				refreshToken = ManagerJWT.GenerateToken(data.Email, ManagerJWT.TypeToken.Refresh);
 			}
 			else
 			{
@@ -39,7 +39,7 @@ namespace Project_solution_test_task.Controller
 				Console.WriteLine("\nfail Try Login");
 				Console.ResetColor();
 
-				return Unauthorized(new { massage = "fail Try Login" });
+				return Unauthorized();
 			}
 
 			Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
@@ -51,10 +51,25 @@ namespace Project_solution_test_task.Controller
 			});
 
 			Program.ConsoleColorGood();
-			Console.WriteLine($"\nuser successfully login: \n\n token:\n{accessToken}\n\n{refreshToken}");
+			Console.WriteLine($"\nuser successfully login: \n\ntokens:\n\n{accessToken}\n\n{refreshToken}");
 			Console.ResetColor();
 
 			return Ok(new { accessToken });
+		}
+
+		[HttpPost("refresh")]
+		public IActionResult UpdateAccessToken()
+		{
+			string? 
+				refreshToken = Request.Cookies["refreshToken"],
+				email;
+
+			if (refreshToken == null || (email = ManagerJWT.ValidateToken(refreshToken)) == null || email == null)
+				return Unauthorized();
+
+			string newAccessToken = ManagerJWT.GenerateToken(email, ManagerJWT.TypeToken.Access);
+
+			return Ok(new { accessToken = newAccessToken });
 		}
 
 		public class LoginData

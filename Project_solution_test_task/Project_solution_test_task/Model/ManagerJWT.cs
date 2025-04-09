@@ -33,8 +33,8 @@ namespace Project_solution_test_task.Model
 
 		public enum TypeToken
 		{
-			AccessToke,
-			RefreshToken
+			Access,
+			Refresh
 		}
 
 		public static string GenerateToken(string email, TypeToken type)
@@ -77,13 +77,13 @@ namespace Project_solution_test_task.Model
 			return $"{header}.{payload}.{signature}";
 		}
 
-		public static bool ValidateToken(string token)
+		public static string? ValidateToken(string token)
 		{
 			try
 			{
 				string[] parts = token.Split('.');
 
-				if (parts.Length != 3) return false;
+				if (parts.Length != 3) return null;
 
 				string checkSignature = Convert.ToBase64String
 				(
@@ -94,20 +94,20 @@ namespace Project_solution_test_task.Model
 					)
 				);
 
-				if (checkSignature != parts[2]) return false;
+				if (checkSignature != parts[2]) return null;
 
 				Dictionary<string, object>? payload = JsonSerializer.Deserialize<Dictionary<string, object>>
 				(
 					Encoding.UTF8.GetString(Convert.FromBase64String(parts[1]))
 				);
 
-				if (payload == null || DateTime.UtcNow.Ticks > (long)payload["exp"]) return false;
+				if (payload == null || DateTime.UtcNow.Ticks > (long)payload["exp"]) return null;
 
-				return true;
+				return payload["email"].ToString();
 			}
 			catch
 			{
-				return false;
+				return null;
 			}
 		}
 
@@ -134,8 +134,8 @@ namespace Project_solution_test_task.Model
 
 		private static DateTime NowAddTime(TypeToken type)
 		{
-			if (type == TypeToken.AccessToke) return DateTime.UtcNow.AddMinutes(lifeAccessToke);
-			else if (type == TypeToken.RefreshToken) return DateTime.UtcNow.AddDays(lifeRefreshToken);
+			if (type == TypeToken.Access) return DateTime.UtcNow.AddMinutes(lifeAccessToke);
+			else if (type == TypeToken.Refresh) return DateTime.UtcNow.AddDays(lifeRefreshToken);
 
 			return default;
 		}
