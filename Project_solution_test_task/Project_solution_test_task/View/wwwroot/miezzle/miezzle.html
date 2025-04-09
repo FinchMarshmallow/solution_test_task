@@ -15,7 +15,7 @@
 				login type
 			</label>
 
-			<select class="select_type_login">
+			<select id="select_type_login" class="select_type_login">
 				<option>sign in</option>
 				<option>sign up user</option>
 				<option>sign up admin</option>
@@ -64,7 +64,11 @@
 		continue without registration
 	</button>
 
+	<p></p>
 
+	<button disabled id="tokens_view" class="tokens_view">
+		null
+	</button>
 
 	<script src="/View/wwwroot/miezzle/miezzle.js" async></script>
 	<input type="hidden" id="csrfToken" name="csrfToken">

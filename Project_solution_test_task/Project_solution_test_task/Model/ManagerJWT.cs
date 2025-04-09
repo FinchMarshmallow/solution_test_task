@@ -11,9 +11,13 @@ namespace Project_solution_test_task.Model
 {
 	public static class ManagerJWT
 	{
+		public static int LifeAccessToke => lifeAccessToke;
+		public static int LifeRefreshToken => lifeRefreshToken;
+
+
 		private static int
-			lifeAccessToke,		// minutes
-			lifeRefreshToken;	// days
+			lifeAccessToke = 10,	// minutes
+			lifeRefreshToken = 30;	// days
 
 		private static string secret = string.Empty;
 
@@ -83,7 +87,13 @@ namespace Project_solution_test_task.Model
 			{
 				string[] parts = token.Split('.');
 
-				if (parts.Length != 3) return null;
+				if (parts.Length != 3)
+				{
+					Program.ConsoleColorError();
+					Console.WriteLine("\nNo Validate Token: parts.Length != 3");
+					Console.ResetColor();
+					return null;
+				}
 
 				string checkSignature = Convert.ToBase64String
 				(
@@ -101,12 +111,47 @@ namespace Project_solution_test_task.Model
 					Encoding.UTF8.GetString(Convert.FromBase64String(parts[1]))
 				);
 
-				if (payload == null || DateTime.UtcNow.Ticks > (long)payload["exp"]) return null;
+				if (payload == null)
+				{
+					Program.ConsoleColorError();
+					Console.WriteLine("\npayload = null");
+					Console.ResetColor();
+					return null;
+				}
+
+				string[] strDate = JsonSerializer.Serialize(payload["lifeTime"]).Trim('"', '\'').Split('-', 'T', ':', 'Z', '.');
+
+				DateTime ripTokenData = new DateTime // кастыль, я незнаю как это распарсить
+				(
+					int.Parse(strDate[0]), // year
+					int.Parse(strDate[1]), // month
+					int.Parse(strDate[2]), // day
+					int.Parse(strDate[3]), // hour
+					int.Parse(strDate[4]), // minute
+					int.Parse(strDate[5])  // second
+				);
+
+				Console.WriteLine($"{strDate[0]}, {strDate[1]}, {strDate[2]}, {strDate[3]}, {strDate[4]}, {strDate[5]}");
+				Console.WriteLine("ripTokenData:" + ripTokenData + "Ticks: " + ripTokenData.Ticks.ToString());
+				Console.WriteLine("UtcNow:      " + DateTime.UtcNow.ToString() + "Ticks: " + DateTime.UtcNow.Ticks.ToString());
+
+				if (DateTime.UtcNow.Ticks > ripTokenData.Ticks)
+				{
+					Program.ConsoleColorError();
+					Console.WriteLine("\ntime over");
+					Console.ResetColor();
+					return null;
+				}
+
+				Console.WriteLine($"\ndata\n{payload.ToString()}\nrip data\n{ripTokenData.ToString()}");
 
 				return payload["email"].ToString();
 			}
-			catch
+			catch(Exception e)
 			{
+				Program.ConsoleColorError();
+				Console.WriteLine($"\n{e.Message}");
+				Console.ResetColor();
 				return null;
 			}
 		}

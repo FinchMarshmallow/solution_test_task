@@ -19,16 +19,56 @@ namespace Project_solution_test_task.Controller
 	[ApiController]
 	public class LoginController : ControllerBase
 	{
-		[HttpPost("login")]
-		public IActionResult Login([FromBody] LoginData data)
+		[HttpPost("sign in")]
+		public IActionResult SignIn([FromBody] LoginData data)
 		{
 			if (!ModelState.IsValid) return Unauthorized();
 
+			string? accessToken = Login(data);
+
+			if (accessToken == null)
+				return Unauthorized();
+			else
+				return Ok(new { accessToken });
+		}
+
+		[HttpPost("sign up")]
+		public IActionResult SingUp([FromBody] LoginData data)
+		{
+			DatabaseModel.UserData buffer = new DatabaseModel.UserData(data.Email, data.Password, DatabaseModel.UserRole.Observer);
+
+			switch (data.Role)
+			{
+				case "Observer":
+					buffer.role = DatabaseModel.UserRole.Observer;
+					break;
+
+				case "Default":
+					buffer.role = DatabaseModel.UserRole.Default;
+					break;
+
+				case "Admin":
+					buffer.role = DatabaseModel.UserRole.Admin;
+					break;
+			}
+
+			DatabaseModel.SignUp(buffer);
+			
+			string? accessToken = Login(data);
+
+			if (accessToken == null)
+				return Unauthorized();
+			else
+				return Ok(new { accessToken });
+		}
+
+		public string? Login(LoginData data)
+		{
 			string
 				accessToken = string.Empty,
 				refreshToken = string.Empty;
 
-			if (DatabaseModel.TryLogin(data.Email, data.Password))
+			if (DatabaseModel.TrySignIn(data.Email, data.Password))
 			{
 				accessToken = ManagerJWT.GenerateToken(data.Email, ManagerJWT.TypeToken.Access);
 				refreshToken = ManagerJWT.GenerateToken(data.Email, ManagerJWT.TypeToken.Refresh);
@@ -39,7 +79,7 @@ namespace Project_solution_test_task.Controller
 				Console.WriteLine("\nfail Try Login");
 				Console.ResetColor();
 
-				return Unauthorized();
+				return null;
 			}
 
 			Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
@@ -47,17 +87,17 @@ namespace Project_solution_test_task.Controller
 				HttpOnly = true,
 				Secure = true,
 				SameSite = SameSiteMode.Strict,
-				Expires = DateTime.UtcNow.AddDays(7)
+				Expires = DateTime.UtcNow.AddDays(ManagerJWT.LifeRefreshToken)
 			});
 
 			Program.ConsoleColorGood();
 			Console.WriteLine($"\nuser successfully login: \n\ntokens:\n\n{accessToken}\n\n{refreshToken}");
 			Console.ResetColor();
 
-			return Ok(new { accessToken });
+			return accessToken;
 		}
 
-		[HttpPost("refresh")]
+		[HttpGet("refresh")]
 		public IActionResult UpdateAccessToken()
 		{
 			string? 
@@ -65,9 +105,23 @@ namespace Project_solution_test_task.Controller
 				email;
 
 			if (refreshToken == null || (email = ManagerJWT.ValidateToken(refreshToken)) == null || email == null)
+			{
+
+				Program.ConsoleColorError();
+				Console.WriteLine("\nInvalid refresh token");
+				Console.ResetColor();
+
+				Console.WriteLine($"\ntoken\n{refreshToken}");
+				
 				return Unauthorized();
+			}
+
 
 			string newAccessToken = ManagerJWT.GenerateToken(email, ManagerJWT.TypeToken.Access);
+
+			Program.ConsoleColorWarning();
+			Console.WriteLine($"\nuser update access token:\n{newAccessToken}");
+			Console.ResetColor();
 
 			return Ok(new { accessToken = newAccessToken });
 		}
@@ -76,6 +130,7 @@ namespace Project_solution_test_task.Controller
 		{
 			public string Email { get; set; } = string.Empty;
 			public string Password { get; set; } = string.Empty;
+			public string Role { get; set; } = string.Empty;
 		}
 	}
 }
