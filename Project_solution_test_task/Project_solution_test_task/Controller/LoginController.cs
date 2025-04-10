@@ -22,9 +22,11 @@ namespace Project_solution_test_task.Controller
 		[HttpPost("sign in")]
 		public IActionResult SignIn([FromBody] LoginData data)
 		{
+			Console.WriteLine("SignIn");
+
 			if (!ModelState.IsValid) return Unauthorized();
 
-			string? accessToken = Login(data);
+			string? accessToken = LoginAd(data);
 
 			if (accessToken == null)
 				return Unauthorized();
@@ -35,6 +37,7 @@ namespace Project_solution_test_task.Controller
 		[HttpPost("sign up")]
 		public IActionResult SingUp([FromBody] LoginData data)
 		{
+			Console.WriteLine("SignUp");
 			DatabaseModel.UserData buffer = new DatabaseModel.UserData(data.Email, data.Password, DatabaseModel.UserRole.Observer);
 
 			switch (data.Role)
@@ -54,7 +57,7 @@ namespace Project_solution_test_task.Controller
 
 			DatabaseModel.SignUp(buffer);
 			
-			string? accessToken = Login(data);
+			string? accessToken = LoginAd(data);
 
 			if (accessToken == null)
 				return Unauthorized();
@@ -62,7 +65,7 @@ namespace Project_solution_test_task.Controller
 				return Ok(new { accessToken });
 		}
 
-		public string? Login(LoginData data)
+		private string? LoginAd(LoginData data)
 		{
 			string
 				accessToken = string.Empty,

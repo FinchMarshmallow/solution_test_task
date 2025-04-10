@@ -83,17 +83,14 @@ async function SignIn(email, password, resultFild, tokenFild)
 
 async function SingUp(email, password, resultFild, tokenFild, selectLogin)
 {
-	let api
 	let role
 
 	if (selectLogin.value === 'sign up user')
 	{
-		api = 'sign up user'
 		role = 'Default'
 	}
 	else if (selectLogin.value === 'sign up admin')
 	{
-		api = 'sign up admin'
 		role = 'Admin'
 	}
 	else
@@ -102,11 +99,14 @@ async function SingUp(email, password, resultFild, tokenFild, selectLogin)
 		return
 	}
 
-	const responce = await fetch('/api/auth/',
+	const responce = await fetch('/api/auth/sign up',
 	{
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ email, password })
+		body: JSON.stringify(
+		{
+			email, password, role
+		})
 	})
 
 	if (responce.ok)
@@ -114,12 +114,12 @@ async function SingUp(email, password, resultFild, tokenFild, selectLogin)
 		const { accessToken } = await responce.json()
 		localStorage.setItem('accessToken', accessToken)
 
-		resultFild.textContent = '✅ hello! ' + api
+		resultFild.textContent = '✅ hello! ' + role
 		tokenFild.textContent = accessToken
 	}
 	else
 	{
-		resultFild.textContent = '❌ fail'
+		resultFild.textContent = '❌ fail sign' + role
 	}
 }
 
