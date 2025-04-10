@@ -78,10 +78,7 @@ namespace Project_solution_test_task.Controller
 			}
 			else
 			{
-				Program.ConsoleColorError();
-				Console.WriteLine("\nfail Try Login");
-				Console.ResetColor();
-
+				Program.ConsoleColorError("fail Try Login");
 				return null;
 			}
 
@@ -93,9 +90,7 @@ namespace Project_solution_test_task.Controller
 				Expires = DateTime.UtcNow.AddDays(ManagerJWT.LifeRefreshToken)
 			});
 
-			Program.ConsoleColorGood();
-			Console.WriteLine($"\nuser successfully login: \n\ntokens:\n\n{accessToken}\n\n{refreshToken}");
-			Console.ResetColor();
+			Program.ConsoleColorGood($"user successfully login: \n\ntokens:\n\n{accessToken}\n\n{refreshToken}");
 
 			return accessToken;
 		}
@@ -103,28 +98,25 @@ namespace Project_solution_test_task.Controller
 		[HttpGet("refresh")]
 		public IActionResult UpdateAccessToken()
 		{
-			string? 
-				refreshToken = Request.Cookies["refreshToken"],
-				email;
+			string? refreshToken = Request.Cookies["refreshToken"];
 
-			if (refreshToken == null || (email = ManagerJWT.ValidateToken(refreshToken)) == null || email == null)
+			if(refreshToken == null)
 			{
-
-				Program.ConsoleColorError();
-				Console.WriteLine("\nInvalid refresh token");
-				Console.ResetColor();
-
-				Console.WriteLine($"\ntoken\n{refreshToken}");
-				
-				return Unauthorized();
+				Program.ConsoleColorError("LoginController: UpdateAccessToken: invalid refresh token");
+				return Unauthorized("invalid refresh token");
 			}
 
+			DatabaseModel.UserData? data = ManagerJWT.ValidateToken(refreshToken);
+			
+			if (data == null)
+			{
+				Program.ConsoleColorError($"LoginController: UpdateAccessToken: invalid data user {refreshToken}");
+				return Unauthorized("invalid data user");
+			}
 
-			string newAccessToken = ManagerJWT.GenerateToken(email, ManagerJWT.TypeToken.Access);
+			string newAccessToken = ManagerJWT.GenerateToken(data.email, ManagerJWT.TypeToken.Access);
 
-			Program.ConsoleColorWarning();
-			Console.WriteLine($"\nuser update access token:\n{newAccessToken}");
-			Console.ResetColor();
+			Program.ConsoleColorWarning($"user update access token:\n{newAccessToken}");
 
 			return Ok(new { accessToken = newAccessToken });
 		}

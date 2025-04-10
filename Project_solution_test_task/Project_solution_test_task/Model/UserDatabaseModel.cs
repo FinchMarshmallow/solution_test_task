@@ -21,22 +21,32 @@ namespace Project_solution_test_task.Model
 			SignUp(new UserData("aaytistca@mail.com", "228cring", UserRole.Default));
 		}
 
-		public static void SignUp(UserData data)
+		public static bool SignUp(UserData data)
 		{
-			/* beautiful console */
-			{
-				Console.BackgroundColor = ConsoleColor.Magenta;
-				Console.ForegroundColor = ConsoleColor.White;
-				Console.WriteLine($"new user: \n{data.email}\n{data.password}\n{data.role.ToString()}");
-				Console.ResetColor();
-			}
 
-			users[data.email] = data;
+			if (users.GetValueOrDefault(data.email) == null)
+			{
+				Program.ConsoleColorBeautiful("new user:");
+				Console.WriteLine($"\nemail:\t\t {data.email}\npassword:\t {data.password}\nrole:\t\t {data.role.ToString()}");
+
+				users[data.email] = data;
+				return true;
+			}
+			else
+			{
+				Program.ConsoleColorError("this user already exists");
+				return false;
+			}
 		}
 
 		public static bool TrySignIn(string email, string password)
 		{
 			return users.TryGetValue(email, out UserData? data) && data.password == password;
+		}
+
+		public static UserData? GetUserData(string email)
+		{
+			return users.GetValueOrDefault(email);
 		}
 
 		public enum UserRole

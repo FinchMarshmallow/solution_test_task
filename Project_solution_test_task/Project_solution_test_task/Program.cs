@@ -38,12 +38,8 @@ namespace Project_solution_test_task
 			url = "https://localhost:51785/";
 			RaiseServer(url);
 
-			Console.Clear();
 			Console.Write("Server -> ");
-
-			ConsoleColorGood();
-			Console.Write(url);
-			Console.ResetColor();
+			ConsoleColorGood(url);
 
 			filePath = FindFilePath();
 
@@ -52,6 +48,8 @@ namespace Project_solution_test_task
 				Task.Delay(10); // кастыль, чтоб сервак не закрылся
 			}
 		}
+
+
 
 		private static string FindFilePath()
 		{
@@ -95,12 +93,10 @@ namespace Project_solution_test_task
 				app.UseHttpsRedirection();
 				app.UseStaticFiles(new StaticFileOptions
 				{
-					OnPrepareResponse = ctx =>
+					OnPrepareResponse = file =>
 					{
-						ConsoleColorGood();
-						Console.WriteLine("\nuser Get static files:");
-						Console.ResetColor();
-						Console.WriteLine($"\n{ctx.File.PhysicalPath}");
+						ConsoleColorGood("user Get static files:");
+						Console.WriteLine($"\n{file.File.PhysicalPath}");
 					},
 
 					FileProvider = new PhysicalFileProvider
@@ -128,19 +124,14 @@ namespace Project_solution_test_task
 
 			Console.Write(question);
 
-			Console.ResetColor();
 			Console.Write(" ");
 
-			ConsoleColorError();
-			Console.Write("N");
+			ConsoleColorError("N");
 
-			Console.ResetColor();
 			Console.Write(" / ");
 
-			ConsoleColorGood();
-			Console.Write("Y");
+			ConsoleColorGood("Y");
 
-			Console.ResetColor();
 			Console.Write(" ");
 
 			while (true)
@@ -180,9 +171,7 @@ namespace Project_solution_test_task
 
 				if (exception.Length > 0)
 				{
-					ConsoleColorError();
-					Console.WriteLine($"{exception}\n");
-					Console.ResetColor();
+					ConsoleColorError($"{exception}\n");
 				}
 				if (header.Length > 0)
 				{
@@ -210,22 +199,46 @@ namespace Project_solution_test_task
 			}
 		}
 
-		public static void ConsoleColorError()
+
+
+		#region Beautiful Console
+
+		public static void ConsoleColorError(string massage)
 		{
 			Console.BackgroundColor = ConsoleColor.Red;
 			Console.ForegroundColor = ConsoleColor.White;
+
+			Console.WriteLine("\n" + massage);
+			Console.ResetColor();
 		}
 
-		public static void ConsoleColorWarning()
+		public static void ConsoleColorWarning(string massage)
 		{
 			Console.BackgroundColor = ConsoleColor.DarkYellow;
 			Console.ForegroundColor = ConsoleColor.White;
+
+			Console.WriteLine("\n" + massage);
+			Console.ResetColor();
 		}
 
-		public static void ConsoleColorGood()
+		public static void ConsoleColorGood(string massage)
 		{
 			Console.BackgroundColor = ConsoleColor.DarkGreen;
 			Console.ForegroundColor = ConsoleColor.White;
+
+			Console.WriteLine("\n" + massage);
+			Console.ResetColor();
 		}
+
+		public static void ConsoleColorBeautiful(string massage)
+		{
+			Console.BackgroundColor = ConsoleColor.Magenta;
+			Console.ForegroundColor = ConsoleColor.White;
+
+			Console.WriteLine("\n" + massage);
+			Console.ResetColor();
+		}
+
+		#endregion
 	}
 }

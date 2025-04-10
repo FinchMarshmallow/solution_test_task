@@ -81,7 +81,7 @@ namespace Project_solution_test_task.Model
 			return $"{header}.{payload}.{signature}";
 		}
 
-		public static string? ValidateToken(string token)
+		public static UserDatabaseModel.UserData? ValidateToken(string token)
 		{
 			try
 			{
@@ -89,9 +89,7 @@ namespace Project_solution_test_task.Model
 
 				if (parts.Length != 3)
 				{
-					Program.ConsoleColorError();
-					Console.WriteLine("\nNo Validate Token: parts.Length != 3");
-					Console.ResetColor();
+					Program.ConsoleColorError("No Validate Token: parts.Length != 3");
 					return null;
 				}
 
@@ -113,14 +111,12 @@ namespace Project_solution_test_task.Model
 
 				if (payload == null)
 				{
-					Program.ConsoleColorError();
-					Console.WriteLine("\npayload = null");
+					Program.ConsoleColorError("payload = null");
 					Console.ResetColor();
 					return null;
 				}
 
 				string[] strDate = JsonSerializer.Serialize(payload["lifeTime"]).Trim('"', '\'').Split('-', 'T', ':', 'Z', '.');
-
 				DateTime ripTokenData = new DateTime // кастыль, я незнаю как это распарсить
 				(
 					int.Parse(strDate[0]), // year
@@ -131,27 +127,30 @@ namespace Project_solution_test_task.Model
 					int.Parse(strDate[5])  // second
 				);
 
-				Console.WriteLine($"{strDate[0]}, {strDate[1]}, {strDate[2]}, {strDate[3]}, {strDate[4]}, {strDate[5]}");
-				Console.WriteLine("ripTokenData:" + ripTokenData + "Ticks: " + ripTokenData.Ticks.ToString());
-				Console.WriteLine("UtcNow:      " + DateTime.UtcNow.ToString() + "Ticks: " + DateTime.UtcNow.Ticks.ToString());
+				Console.WriteLine($"Json original: {strDate[0]}, {strDate[1]}, {strDate[2]}, {strDate[3]}, {strDate[4]}, {strDate[5]}");
+				Console.WriteLine("ripTokenData: " + ripTokenData + "Ticks: " + ripTokenData.Ticks.ToString());
+				Console.WriteLine("Utc Now:      " + DateTime.UtcNow.ToString() + "Ticks: " + DateTime.UtcNow.Ticks.ToString());
 
 				if (DateTime.UtcNow.Ticks > ripTokenData.Ticks)
 				{
-					Program.ConsoleColorError();
-					Console.WriteLine("\ntime over");
-					Console.ResetColor();
+					Program.ConsoleColorError("time over");
 					return null;
 				}
 
 				Console.WriteLine($"\ndata\n{payload.ToString()}\nrip data\n{ripTokenData.ToString()}");
 
-				return payload["email"].ToString();
+				string? email = payload["email"].ToString(); 
+
+				if(email != null)
+				{
+					return UserDatabaseModel.GetUserData(email);
+				}
+
+				return null;
 			}
 			catch(Exception e)
 			{
-				Program.ConsoleColorError();
-				Console.WriteLine($"\n{e.Message}");
-				Console.ResetColor();
+				Program.ConsoleColorError($"ManagerJWT: ValidateToken: error: \n{e.Message}");
 				return null;
 			}
 		}
