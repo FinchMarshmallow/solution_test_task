@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace Project_solution_test_task.Model.Db
+namespace Project_solution_test_task.Model
 {
 	[Table("purchases")]
 	public class Purchase

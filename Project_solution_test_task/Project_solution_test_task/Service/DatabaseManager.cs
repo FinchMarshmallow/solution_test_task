@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Project_solution_test_task.Model.Db
+namespace Project_solution_test_task.Service
 {
 	public static class DatabaseManager
 	{

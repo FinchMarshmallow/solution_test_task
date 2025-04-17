@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Project_solution_test_task.Model.Db
+namespace Project_solution_test_task.Model
 {
 	[Table("product cards")]
 	public class ProductCard
@@ -20,11 +20,14 @@ namespace Project_solution_test_task.Model.Db
 
 		public string? Description { get; set; }
 
+		[Column("Image_url")]
+		public string? Image { get; set; }
+
 		[Required]
 		public decimal Price { get; set; }
 
 		[Required]
-		public int StockCount { get; set; }
+		public int inStock { get; set; }
 
 		public int SellerId { get; set; }
 		[ForeignKey("SellerId")]

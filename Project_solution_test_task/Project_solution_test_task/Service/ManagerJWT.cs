@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
-using Project_solution_test_task.Model.Db;
+using Project_solution_test_task.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace Project_solution_test_task.Model
+namespace Project_solution_test_task.Service
 {
 	public static class ManagerJWT
 	{

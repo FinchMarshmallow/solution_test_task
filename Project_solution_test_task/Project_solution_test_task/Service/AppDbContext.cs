@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Project_solution_test_task.Model;
 
-namespace Project_solution_test_task.Model.Db
+namespace Project_solution_test_task.Service
 {
 	public class AppDbContext : DbContext
 	{

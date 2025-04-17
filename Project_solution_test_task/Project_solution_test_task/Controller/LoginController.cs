@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Project_solution_test_task.Model;
-using Project_solution_test_task.Model.Db;
+using Project_solution_test_task.Service;
 using System.Data.Entity;
 
 namespace Project_solution_test_task.Controller
