@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using Project_solution_test_task.Model.Db;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -81,7 +82,7 @@ namespace Project_solution_test_task.Model
 			return $"{header}.{payload}.{signature}";
 		}
 
-		public static UserDatabaseModel.UserData? ValidateToken(string token)
+		public static User? ValidateToken(string token)
 		{
 			try
 			{
@@ -143,7 +144,7 @@ namespace Project_solution_test_task.Model
 
 				if(email != null)
 				{
-					return UserDatabaseModel.GetUserData(email);
+					return DatabaseManager.Сontext.Users.FirstOrDefault(user => user.Email == email);
 				}
 
 				return null;

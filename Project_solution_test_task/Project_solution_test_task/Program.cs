@@ -8,22 +8,43 @@ using System.Runtime.Intrinsics.X86;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using System.Net.Sockets;
 using Microsoft.Extensions.DependencyInjection;
-using Project_solution_test_task.Model.Services.Implementations;
-using Project_solution_test_task.Model.Services.Interface;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
+using Project_solution_test_task.Model.Db;
+using Microsoft.Extensions.Options;
+using Npgsql;
+using System.Linq;
 
 
 namespace Project_solution_test_task
 {
 	static class Program
 	{
-		public static string filePath = "", url	= "";
+		public static string
+
+			filePath	= string.Empty,
+			url			= string.Empty,
+
+			strOptions	= string.Empty,
+			nameDb		= "test_shop",
+			userId		= "postgres",
+			passwordDb	= "Ql^73#91Lop@4";
+
 		public static int port;
+
+		public static AppDbContext? 
+			users_Db,
+			ProductCards_Db,
+			purchases_Db;
 
 		private static void Main(string[] args)
 		{
-			bool isUseAutomaticPort = true; // QuestionUserYesOrNot("use automatic port ?");
+			DataBaseInit();
+
+			bool isUseAutomaticPort =
+				true;
+				//QuestionUserYesOrNot("use automatic port ?");
 
 			if (!isUseAutomaticPort)
 			{
@@ -34,8 +55,10 @@ namespace Project_solution_test_task
 				port = GetFreePort();
 			}
 
-			//url = $"https://localhost:{port}/";
-			url = "https://localhost:51785/";
+			url = 
+				"https://localhost:51785/";
+				//url = $"https://localhost:{port}/";
+
 			RaiseServer(url);
 
 			Console.Write("Server -> ");
@@ -43,9 +66,32 @@ namespace Project_solution_test_task
 
 			filePath = FindFilePath();
 
+
+
+
+			//User user = new User
+			//{
+			//	Email = "admin@store.com",
+			//	PasswordHash = "qwer1234"
+			//};
+
+			//DatabaseManager.Сontext.Users.Add(user);
+			//DatabaseManager.Сontext.SaveChanges();
+
+			//var products = DatabaseManager.Сontext.Users.ToList();
+
+			//foreach (var product in products)
+			//{
+			//	Console.WriteLine($"User email: {product.Email}");
+			//}
+
+
+
+
+
 			while (true) 
 			{ 
-				Task.Delay(10); // кастыль, чтоб сервак не закрылся
+				Task.Delay(100); // кастыль, чтоб сервак не закрылся
 			}
 		}
 
@@ -72,10 +118,10 @@ namespace Project_solution_test_task
 			.UseWebRoot("wwwroot")
 			.ConfigureServices(services =>
 			{
-				services.AddScoped<IServiceAddition, ServiceAddition>();
-				services.AddScoped<IServiceDivision, ServiceDivision>();
-				services.AddScoped<IServiceMultiplication, ServiceMultiplication>();
-				services.AddScoped<IServiceSubtraction, ServiceSubtraction>();
+				//services.AddScoped<IServiceAddition, ServiceAddition>();
+				//services.AddScoped<IServiceDivision, ServiceDivision>();
+				//services.AddScoped<IServiceMultiplication, ServiceMultiplication>();
+				//services.AddScoped<IServiceSubtraction, ServiceSubtraction>();
 
 				// кука для JWT
 				services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -124,14 +170,19 @@ namespace Project_solution_test_task
 
 			Console.Write(question);
 
+			Console.ResetColor();
 			Console.Write(" ");
 
-			ConsoleColorError("N");
+			ConsoleColorError();
+			Console.Write("N");
 
+			Console.ResetColor();
 			Console.Write(" / ");
 
-			ConsoleColorGood("Y");
+			ConsoleColorGood();
+			Console.Write("Y");
 
+			Console.ResetColor();
 			Console.Write(" ");
 
 			while (true)
@@ -199,41 +250,58 @@ namespace Project_solution_test_task
 			}
 		}
 
+		private static void DataBaseInit()
+		{
+			strOptions =
+				$"Host=localhost;" +
+				$"Port=5432;" +
+				$"Database={nameDb};" +
+				$"User Id={userId};" +
+				$"Password={passwordDb};";
+		}
 
 
 		#region Beautiful Console
 
-		public static void ConsoleColorError(string massage)
+		public static void ConsoleColorError(string? massage = null)
 		{
 			Console.BackgroundColor = ConsoleColor.Red;
 			Console.ForegroundColor = ConsoleColor.White;
 
+			if (massage == null) return;
+
 			Console.WriteLine("\n" + massage);
 			Console.ResetColor();
 		}
 
-		public static void ConsoleColorWarning(string massage)
+		public static void ConsoleColorWarning(string? massage = null)
 		{
 			Console.BackgroundColor = ConsoleColor.DarkYellow;
 			Console.ForegroundColor = ConsoleColor.White;
 
+			if (massage == null) return;
+
 			Console.WriteLine("\n" + massage);
 			Console.ResetColor();
 		}
 
-		public static void ConsoleColorGood(string massage)
+		public static void ConsoleColorGood(string? massage = null)
 		{
 			Console.BackgroundColor = ConsoleColor.DarkGreen;
 			Console.ForegroundColor = ConsoleColor.White;
 
+			if (massage == null) return;
+
 			Console.WriteLine("\n" + massage);
 			Console.ResetColor();
 		}
 
-		public static void ConsoleColorBeautiful(string massage)
+		public static void ConsoleColorBeautiful(string? massage = null)
 		{
 			Console.BackgroundColor = ConsoleColor.Magenta;
 			Console.ForegroundColor = ConsoleColor.White;
+
+			if (massage == null) return;
 
 			Console.WriteLine("\n" + massage);
 			Console.ResetColor();

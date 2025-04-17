@@ -9,9 +9,16 @@
 
 	if (responce.ok)
 	{
-		const { accessToken } = await responce.json()
+		const responceJson = await responce.json()
+
+		const { accessToken } = responceJson.accessToken
 		localStorage.setItem('accessToken', accessToken)
 		tokenMassge.textContent = accessToken
+
+		const continueByToken = document.getElementById('form_continue_by_token')
+		continueByToken.hidden = false
+
+		const dataUser = document.getElementById('form_continue_by_token');
 	}
 });
 

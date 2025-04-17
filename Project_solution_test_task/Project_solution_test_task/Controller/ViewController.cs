@@ -13,7 +13,7 @@ namespace Project_solution_test_task.Controller
 	[Route("/")]
 	public class ViewController : ControllerBase
 	{
-		private readonly string 
+		private readonly string
 			muzzle = $"{Program.filePath}/View/wwwroot/miezzle/";
 
 

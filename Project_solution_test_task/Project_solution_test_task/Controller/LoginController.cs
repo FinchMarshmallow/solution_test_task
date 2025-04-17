@@ -1,17 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 using Project_solution_test_task.Model;
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
+using Project_solution_test_task.Model.Db;
+using System.Data.Entity;
 
 namespace Project_solution_test_task.Controller
 {
@@ -19,6 +10,7 @@ namespace Project_solution_test_task.Controller
 	[ApiController]
 	public class LoginController : ControllerBase
 	{
+
 		[HttpPost("sign in")]
 		public IActionResult SignIn([FromBody] LoginData data)
 		{
@@ -26,38 +18,44 @@ namespace Project_solution_test_task.Controller
 
 			if (!ModelState.IsValid) return Unauthorized();
 
-			string? accessToken = LoginAd(data);
+			string? accessToken = Login(data);
 
 			if (accessToken == null)
 				return Unauthorized();
 			else
 				return Ok(new { accessToken });
 		}
+
 
 		[HttpPost("sign up")]
 		public IActionResult SingUp([FromBody] LoginData data)
 		{
 			Console.WriteLine("SignUp");
-			DatabaseModel.UserData buffer = new DatabaseModel.UserData(data.Email, data.Password, DatabaseModel.UserRole.Observer);
+			Role bufferRole;
 
 			switch (data.Role)
 			{
-				case "Observer":
-					buffer.role = DatabaseModel.UserRole.Observer;
-					break;
-
 				case "Default":
-					buffer.role = DatabaseModel.UserRole.Default;
+					bufferRole = Role.Default;
 					break;
 
 				case "Admin":
-					buffer.role = DatabaseModel.UserRole.Admin;
+					bufferRole = Role.Admin;
 					break;
+
+				default:
+					return Unauthorized();
 			}
 
-			DatabaseModel.SignUp(buffer);
+			User newUser = new();
+
+			newUser.Email = data.Email;
+			newUser.Password = data.Password;
+			newUser.Role = bufferRole;
+
+			DatabaseManager.Сontext.Users.Add(newUser);
 			
-			string? accessToken = LoginAd(data);
+			string? accessToken = Login(data);
 
 			if (accessToken == null)
 				return Unauthorized();
@@ -65,13 +63,14 @@ namespace Project_solution_test_task.Controller
 				return Ok(new { accessToken });
 		}
 
-		private string? LoginAd(LoginData data)
+
+		private string? Login(LoginData data)
 		{
 			string
 				accessToken = string.Empty,
 				refreshToken = string.Empty;
 
-			if (DatabaseModel.TrySignIn(data.Email, data.Password))
+			if (DatabaseManager.Сontext.Users.FirstOrDefault(user => user.Email == data.Email)?.Password == data.Password)
 			{
 				accessToken = ManagerJWT.GenerateToken(data.Email, ManagerJWT.TypeToken.Access);
 				refreshToken = ManagerJWT.GenerateToken(data.Email, ManagerJWT.TypeToken.Refresh);
@@ -95,6 +94,7 @@ namespace Project_solution_test_task.Controller
 			return accessToken;
 		}
 
+
 		[HttpGet("refresh")]
 		public IActionResult UpdateAccessToken()
 		{
@@ -106,20 +106,21 @@ namespace Project_solution_test_task.Controller
 				return Unauthorized("invalid refresh token");
 			}
 
-			DatabaseModel.UserData? data = ManagerJWT.ValidateToken(refreshToken);
+			User? user = ManagerJWT.ValidateToken(refreshToken);
 			
-			if (data == null)
+			if (user == null)
 			{
 				Program.ConsoleColorError($"LoginController: UpdateAccessToken: invalid data user {refreshToken}");
 				return Unauthorized("invalid data user");
 			}
 
-			string newAccessToken = ManagerJWT.GenerateToken(data.email, ManagerJWT.TypeToken.Access);
+			string newAccessToken = ManagerJWT.GenerateToken(user.Email, ManagerJWT.TypeToken.Access);
 
 			Program.ConsoleColorWarning($"user update access token:\n{newAccessToken}");
 
-			return Ok(new { accessToken = newAccessToken });
+			return Ok(new { newAccessToken });
 		}
+
 
 		public class LoginData
 		{
