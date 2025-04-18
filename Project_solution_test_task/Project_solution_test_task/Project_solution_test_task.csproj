@@ -53,6 +53,7 @@
 
   <ItemGroup>
     <Folder Include="View\Product Images\" />
+    <Folder Include="View\wwwroot\shop body\" />
   </ItemGroup>
 
 </Project>

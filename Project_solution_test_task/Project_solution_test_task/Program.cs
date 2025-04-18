@@ -326,6 +326,9 @@ namespace Project_solution_test_task
 				$"User Id={userId};" +
 				$"Password={passwordDb};";
 
+
+			ConsoleColorWarning("Users:");
+
 			if (QuestionUserYesOrNot("create test users ?"))
 			{
 				Random ran = new Random((int)DateTime.Now.Ticks);
@@ -335,12 +338,12 @@ namespace Project_solution_test_task
 
 				DatabaseManager.Сontext.SaveChanges();
 			}
-
-			ConsoleColorWarning("Users:");
-
-			foreach (User user in DatabaseManager.Сontext.Users)
+			else
 			{
-				Console.WriteLine($"email: {user.Email},{new string(' ', (int)Math.Clamp(34 - user.Email.Length, 4, 34))}password: {user.Password}");
+				foreach (User user in DatabaseManager.Сontext.Users)
+				{
+					Console.WriteLine($"email: {user.Email},{new string(' ', (int)Math.Clamp(34 - user.Email.Length, 4, 34))}password: {user.Password}");
+				}
 			}
 		}
 
@@ -756,13 +759,18 @@ namespace Project_solution_test_task
 					passwordBuffer += paswordTokens[ran.Next(0, paswordTokens.Length)];
 				}
 
-				DatabaseManager.Сontext.Users.Add(new User
+
+				User user = new User
 				{
 					Email = email,
 					Role = role,
-					Password = Program.ConvertToHash(passwordBuffer),
+					Password = ConvertToHash(passwordBuffer),
 					Money = ran.Next(0, 9999)
-				});
+				};
+
+				DatabaseManager.Сontext.Users.Add(user);
+
+				Console.WriteLine($"email: {user.Email},{new string(' ', (int)Math.Clamp(34 - user.Email.Length, 4, 34))}password: {passwordBuffer}");
 
 				passwordBuffer = string.Empty;
 			}

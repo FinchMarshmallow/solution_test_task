@@ -107,5 +107,36 @@ namespace Project_solution_test_task.Controller
 
 			return Ok(result);
 		}
+
+
+		[HttpPost("create")]
+		public IActionResult CreatePurchase([FromBody] PurchaseData data)
+		{
+			User? user = ManagerJWT.ValidateToken(data.Token);
+			if (user == null) return Unauthorized();
+
+			var product = DatabaseManager.Сontext.ProductCards
+				.FirstOrDefault(p => p.Id == data.ProductId);
+
+			if (product == null) return NotFound("Product not found");
+
+			Purchase purchase = new Purchase
+			{
+				BuyerId = user.Id,
+				ProductCards = new List<ProductCard> { product },
+				PurchaseDate = DateTime.UtcNow
+			};
+
+			DatabaseManager.Сontext.Purchases.Add(purchase);
+			DatabaseManager.Сontext.SaveChanges();
+
+			return Ok();
+		}
+
+		public class PurchaseData
+		{
+			public string Token { get; set; }
+			public int ProductId { get; set; }
+		}
 	}
 }

@@ -50,5 +50,42 @@ namespace Project_solution_test_task.Controller
 
 			return Ok(user.Purchases);
 		}
+
+
+		
+		[HttpGet("{id}/comments")]
+		public IActionResult GetComments(int id)
+		{
+			var product = DatabaseManager.Сontext.ProductCards.FirstOrDefault(card => card.Id == id);
+
+			return Ok(product?.Comments);
+		}
+
+		[HttpPost("{id}/comment")]
+		public IActionResult AddComment(int id, [FromBody] CommentData data)
+		{
+			var user = ManagerJWT.ValidateToken(data.Token);
+			if (user == null) return Unauthorized();
+
+			var comment = new Comment
+			{
+				Message = data.Message,
+				Rating = data.Rating,
+				AuthorId = user.Id,
+				ProductCardId = id
+			};
+
+			DatabaseManager.Сontext.Comments.Add(comment);
+			DatabaseManager.Сontext.SaveChanges();
+
+			return Ok();
+		}
+
+		public class CommentData
+		{
+			public string Token { get; set; }
+			public string Message { get; set; }
+			public int Rating { get; set; }
+		}
 	}
 }
