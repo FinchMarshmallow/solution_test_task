@@ -58,8 +58,8 @@ namespace Project_solution_test_task
 			DataBaseInit();
 
 			bool isUseAutomaticPort =
-				true;
-				//QuestionUserYesOrNot("use automatic port ?");
+				//true;
+				QuestionUserYesOrNot("use automatic port ?");
 
 			if (!isUseAutomaticPort)
 			{
@@ -71,8 +71,8 @@ namespace Project_solution_test_task
 			}
 
 			url = 
-				"https://localhost:51785/";
-				//url = $"https://localhost:{port}/";
+				//"https://localhost:51785/";
+				url = $"https://localhost:{port}/";
 
 			RaiseServer(url);
 
