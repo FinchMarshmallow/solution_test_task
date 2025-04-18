@@ -40,12 +40,27 @@ namespace Project_solution_test_task.Controller
 			User? user = ManagerJWT.ValidateToken(token);
 			if (user == null) return Unauthorized();
 
-			Purchase? purchase = DatabaseManager.Сontext.Purchases.FirstOrDefault(p => p.Id == id);
+			Purchase? purchase = DatabaseManager.Сontext.Purchases.FirstOrDefault(purchase => purchase.Id == id);
 
-			if (purchase == null || (user.Role != Role.Admin && purchase.BuyerId != user.Id))
+			if (purchase == null || (user.Role != Role.Admin && purchase.Buyer.Id != user.Id))
 				return NotFound();
 
 			return Ok(purchase);
+		}
+
+
+		[HttpGet("{id}/{token}")]
+		public IActionResult GetDataByUser(int id, string token)
+		{
+			User? Admin = ManagerJWT.ValidateToken(token);
+			if (Admin == null) return Unauthorized();
+
+			User? user = DatabaseManager.Сontext.Users.FirstOrDefault(user => user.Id == id);
+
+			if (user == null || Admin.Role != Role.Admin)
+				return NotFound();
+
+			return Ok(user);
 		}
 
 		[HttpGet("admin/filter/{token}")]
