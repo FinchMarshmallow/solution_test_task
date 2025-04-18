@@ -32,8 +32,6 @@ namespace Project_solution_test_task.Model
 		public User Buyer { get; set; } = null!;
 
 
-		public int ProductCardId { get; set; }
-		[ForeignKey(nameof(ProductCardId))]
-		public ProductCard Product { get; set; } = null!;
+		public List<ProductCard> ProductCards { get; set; } = new();
 	}
 }

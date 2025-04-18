@@ -26,7 +26,7 @@ namespace Project_solution_test_task.Service
 			modelBuilder
 			.Entity<ProductCard>()
 			.HasOne(product => product.Seller)
-			.WithMany(user => user.Products)
+			.WithMany(user => user.ProductCards)
 			.HasForeignKey(product => product.SellerId)
 			.OnDelete(DeleteBehavior.Cascade);
 

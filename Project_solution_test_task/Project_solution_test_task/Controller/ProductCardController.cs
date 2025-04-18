@@ -51,8 +51,47 @@ namespace Project_solution_test_task.Controller
 				seller = buffer.Seller.Email,
 				rating = rating,
 				price = buffer.Price,
-				inStock = buffer.inStock,
+				inStock = buffer.InStock,
 			});
+		}
+
+		[HttpPost("create/{token}")]
+		public IActionResult CreateProductCard([FromBody] DataProductCard product, string token)
+		{
+			if (!ModelState.IsValid) return Unauthorized();
+
+			User? user = ManagerJWT.ValidateToken(token);
+
+			if (user?.Role != Role.Default) return Unauthorized("you don Default, admin not can shopping!");
+
+			ProductCard productCard = new ProductCard()
+			{
+				Title = product.title,
+				Description = product.description,
+				Image = product.image,
+				Price = product.price,
+				InStock = product.inStock,
+				SellerId = user.Id,
+				Seller = user
+			};
+
+			DatabaseManager.Сontext.ProductCards.Add(productCard);
+			user.ProductCards.Add(productCard);
+
+			return Ok(productCard.Id);
+		}
+
+		public class DataProductCard 
+		{
+			public string
+				title			= string.Empty,
+				description		= string.Empty;
+
+			public byte[]? image = null;
+
+			public decimal price;
+			public int inStock;
+
 		}
 	}
 }

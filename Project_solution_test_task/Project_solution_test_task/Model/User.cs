@@ -25,10 +25,13 @@ namespace Project_solution_test_task.Model
 		[Required]
 		public string Password { get; set; } = null!;
 
+		[Required]
+		public decimal Money { get; set; }
+
 
 		public List<Comment> Comments { get; set; } = new();
 		public List<Purchase> Purchases { get; set; } = new();
-		public List<ProductCard> Products { get; set; } = new();
+		public List<ProductCard> ProductCards { get; set; } = new();
 	}
 
 	public enum Role

@@ -28,6 +28,8 @@ using System.Security.Policy;
 using System;
 
 using Project_solution_test_task.Model;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Text;
 
 
 namespace Project_solution_test_task
@@ -220,6 +222,11 @@ namespace Project_solution_test_task
 			int port = ((IPEndPoint)listener.LocalEndpoint).Port;
 			listener.Stop();
 			return port;
+		}
+
+		public static string ConvertToHash(string str)
+		{
+			return Convert.ToBase64String(Encoding.UTF8.GetBytes(str));
 		}
 
 		private static int GetInputInt(string header = "Enter int: ", bool isClearConsol = true)
@@ -753,7 +760,8 @@ namespace Project_solution_test_task
 				{
 					Email = email,
 					Role = role,
-					Password = passwordBuffer
+					Password = Program.ConvertToHash(passwordBuffer),
+					Money = ran.Next(0, 9999)
 				});
 
 				passwordBuffer = string.Empty;

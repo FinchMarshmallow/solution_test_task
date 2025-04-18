@@ -20,14 +20,14 @@ namespace Project_solution_test_task.Model
 
 		public string? Description { get; set; }
 
-		[Column("Image_url")]
-		public string? Image { get; set; }
+		[Column("ImageByte")]
+		public byte[]? Image { get; set; } = null;
 
 		[Required]
 		public decimal Price { get; set; }
 
 		[Required]
-		public int inStock { get; set; }
+		public int InStock { get; set; }
 
 		public int SellerId { get; set; }
 		[ForeignKey("SellerId")]

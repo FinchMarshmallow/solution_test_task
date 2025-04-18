@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Project_solution_test_task.Model;
 using Project_solution_test_task.Service;
 using System.Data.Entity;
+using System.Text;
 
 namespace Project_solution_test_task.Controller
 {
@@ -50,7 +51,7 @@ namespace Project_solution_test_task.Controller
 			User newUser = new();
 
 			newUser.Email = data.Email;
-			newUser.Password = data.Password;
+			newUser.Password = Program.ConvertToHash(data.Password);
 			newUser.Role = bufferRole;
 
 			DatabaseManager.Сontext.Users.Add(newUser);
@@ -70,7 +71,8 @@ namespace Project_solution_test_task.Controller
 				accessToken = string.Empty,
 				refreshToken = string.Empty;
 
-			if (DatabaseManager.Сontext.Users.FirstOrDefault(user => user.Email == data.Email)?.Password == data.Password)
+			if (DatabaseManager.Сontext.Users.FirstOrDefault(user => user.Email == data.Email)?.Password 
+				== Program.ConvertToHash(data.Password))
 			{
 				accessToken = ManagerJWT.GenerateToken(data.Email, ManagerJWT.TypeToken.Access);
 				refreshToken = ManagerJWT.GenerateToken(data.Email, ManagerJWT.TypeToken.Refresh);
