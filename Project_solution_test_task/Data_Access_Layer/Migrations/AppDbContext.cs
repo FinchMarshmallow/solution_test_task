@@ -1,7 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Project_solution_test_task.Model;
+﻿using _Main;
+using Data_Access_Layer.Model;
+using Microsoft.EntityFrameworkCore;
 
-namespace Project_solution_test_task.Service
+namespace Main.Migrations
 {
 	public class AppDbContext : DbContext
 	{
@@ -12,17 +13,11 @@ namespace Project_solution_test_task.Service
 
 		public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
 		{
-			Program.ConsoleColorWarning("AppDbContext created");
+			Massage.LogGood("AppDbContext has been created");
 		}
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
-			/* Связи:
-			 * ProductCard -> User (Seller)
-			 * Comment -> User (Author)
-			 * Purchase -> ProductCard
-			 */
-
 			modelBuilder
 			.Entity<ProductCard>()
 			.HasOne(product => product.Seller)

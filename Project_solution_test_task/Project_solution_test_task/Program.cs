@@ -14,7 +14,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using System.Linq;
-using Project_solution_test_task.Service;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.SignalR;
@@ -26,81 +25,42 @@ using System.Runtime.ConstrainedExecution;
 using System.Runtime.Intrinsics.Arm;
 using System.Security.Policy;
 using System;
-
-using Project_solution_test_task.Model;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Text;
+using _Main;
 
 
-namespace Project_solution_test_task
+namespace Main
 {
 	static class Program
 	{
-		public static string
-
-			filePath	= string.Empty,
-			url			= string.Empty,
-
-			strOptions	= string.Empty,
-			nameDb		= "test_shop",
-			userId		= "postgres",
-			passwordDb	= "Ql^73#91Lop@4";
-
-		public static int port;
-
-		public static AppDbContext? 
-			users_Db,
-			ProductCards_Db,
-			purchases_Db;
-
 		private static void Main(string[] args)
 		{
-			DataBaseInit();
+			//DataBaseInit();
 
 			bool isUseAutomaticPort =
 				//true;
-				QuestionUserYesOrNot("use automatic port ?");
+				Massage.QuestionUserBool("use automatic port ?");
 
 			if (!isUseAutomaticPort)
 			{
-				port = GetInputInt("Enter port: ");
+				Config.port = Massage.GetInputInt("Enter port: ");
 			}
 			else
 			{
-				port = GetFreePort();
+				Config.port = GetFreePort();
 			}
 
-			url = 
+			Config.url = 
 				//"https://localhost:51785/";
-				url = $"https://localhost:{port}/";
+				$"https://localhost:{Config.port}/";
 
-			RaiseServer(url);
+			RaiseServer(Config.url);
 
-			Console.Write("Server -> ");
-			ConsoleColorGood(url);
+			Massage.LogGood("Server -> ");
+			Massage.Log(Config.url);
 
-			filePath = FindFilePath();
-
-
-
-
-			//User user = new User
-			//{
-			//	Email = "admin@store.com",
-			//	PasswordHash = "qwer1234"
-			//};
-
-			//DatabaseManager.Сontext.Users.Add(user);
-			//DatabaseManager.Сontext.SaveChanges();
-
-			//var products = DatabaseManager.Сontext.Users.ToList();
-
-			//foreach (var product in products)
-			//{
-			//	Console.WriteLine($"User email: {product.Email}");
-			//}
-
-
+			Config.filePath = FindFilePath();
 
 
 
@@ -133,12 +93,6 @@ namespace Project_solution_test_task
 			.UseWebRoot("wwwroot")
 			.ConfigureServices(services =>
 			{
-				//services.AddScoped<IServiceAddition, ServiceAddition>();
-				//services.AddScoped<IServiceDivision, ServiceDivision>();
-				//services.AddScoped<IServiceMultiplication, ServiceMultiplication>();
-				//services.AddScoped<IServiceSubtraction, ServiceSubtraction>();
-
-				// кука для JWT
 				services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
 				.AddCookie(options =>
 				{
@@ -156,15 +110,14 @@ namespace Project_solution_test_task
 				{
 					OnPrepareResponse = file =>
 					{
-						ConsoleColorGood("user Get static files:");
-						Console.WriteLine($"\n{file.File.PhysicalPath}");
+						Massage.Log($"user Get static files: \n\n{file.File.PhysicalPath}\n");
 					},
 
 					FileProvider = new PhysicalFileProvider
 					(
-						Path.Combine(Directory.GetCurrentDirectory(), filePath)
+						Path.Combine(Directory.GetCurrentDirectory(), Config.filePath)
 					),
-					RequestPath = filePath
+					RequestPath = Config.filePath
 				});
 				app.UseRouting();
 				app.UseEndpoints(endpoints =>
@@ -179,41 +132,7 @@ namespace Project_solution_test_task
 			await host.RunAsync();
 		}
 
-		public static bool QuestionUserYesOrNot(string question = "what is the meaning of life ?", bool isClear = true)
-		{
-			if (isClear) Console.Clear();
 
-			Console.Write(question);
-
-			Console.ResetColor();
-			Console.Write(" ");
-
-			ConsoleColorError();
-			Console.Write("N");
-
-			Console.ResetColor();
-			Console.Write(" / ");
-
-			ConsoleColorGood();
-			Console.Write("Y");
-
-			Console.ResetColor();
-			Console.Write(" ");
-
-			while (true)
-			{
-				ConsoleKey buffer = Console.ReadKey(true).Key;
-
-				if (buffer == ConsoleKey.Y)
-				{
-					return true;
-				}
-				else if (buffer == ConsoleKey.N)
-				{
-					return false;
-				}
-			}
-		}
 
 		private static int GetFreePort() // кастыль
 		{
@@ -229,94 +148,8 @@ namespace Project_solution_test_task
 			return Convert.ToBase64String(Encoding.UTF8.GetBytes(str));
 		}
 
-		private static int GetInputInt(string header = "Enter int: ", bool isClearConsol = true)
-		{
-			string? input = null;
-			string 
-				exception = "",
-				nullReference = "you not entered text";
 
-			while (true)
-			{
-				if (isClearConsol) Console.Clear();
-
-				if (exception.Length > 0)
-				{
-					ConsoleColorError($"{exception}\n");
-				}
-				if (header.Length > 0)
-				{
-					Console.Write(header);
-				}
-
-				try
-				{
-					input = Console.ReadLine();
-
-					if (input == null)
-					{
-						throw new ArgumentNullException(nullReference);
-					}
-					else
-					{
-						return int.Parse(input);
-					}
-
-				}
-				catch(Exception e)
-				{
-					exception = e.Message;
-				}
-			}
-		}
-
-		#region Beautiful Console
-
-		public static void ConsoleColorError(string? massage = null)
-		{
-			Console.BackgroundColor = ConsoleColor.Red;
-			Console.ForegroundColor = ConsoleColor.White;
-
-			if (massage == null) return;
-
-			Console.WriteLine("\n" + massage);
-			Console.ResetColor();
-		}
-
-		public static void ConsoleColorWarning(string? massage = null)
-		{
-			Console.BackgroundColor = ConsoleColor.DarkYellow;
-			Console.ForegroundColor = ConsoleColor.White;
-
-			if (massage == null) return;
-
-			Console.WriteLine("\n" + massage);
-			Console.ResetColor();
-		}
-
-		public static void ConsoleColorGood(string? massage = null)
-		{
-			Console.BackgroundColor = ConsoleColor.DarkGreen;
-			Console.ForegroundColor = ConsoleColor.White;
-
-			if (massage == null) return;
-
-			Console.WriteLine("\n" + massage);
-			Console.ResetColor();
-		}
-
-		public static void ConsoleColorBeautiful(string? massage = null)
-		{
-			Console.BackgroundColor = ConsoleColor.Magenta;
-			Console.ForegroundColor = ConsoleColor.White;
-
-			if (massage == null) return;
-
-			Console.WriteLine("\n" + massage);
-			Console.ResetColor();
-		}
-
-		#endregion
+		/*
 		private static void DataBaseInit()
 		{
 			strOptions =
@@ -329,7 +162,7 @@ namespace Project_solution_test_task
 
 			ConsoleColorWarning("Users:");
 
-			if (QuestionUserYesOrNot("create test users ?"))
+			if (QuestionUserBool("create test users ?"))
 			{
 				Random ran = new Random((int)DateTime.Now.Ticks);
 
@@ -775,5 +608,6 @@ namespace Project_solution_test_task
 				passwordBuffer = string.Empty;
 			}
 		}
+		*/
 	}
 }

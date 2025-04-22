@@ -1,17 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Project_solution_test_task.Model;
-using Project_solution_test_task.Service;
+using Main.Core.Model;
+using Main.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Project_solution_test_task.Controller
+namespace Presentation_Layer.Controller
 {
 	[Route("api/purchase")]
 	[ApiController]
-	public class PurchaseController : ControllerBase
+	public class ControllerPurchase : ControllerBase
 	{
 		[HttpGet("history/{token}")]
 		public IActionResult GetUserPurchases(string token)
@@ -42,7 +42,7 @@ namespace Project_solution_test_task.Controller
 
 			Purchase? purchase = DatabaseManager.Сontext.Purchases.FirstOrDefault(purchase => purchase.Id == id);
 
-			if (purchase == null || (user.Role != Role.Admin && purchase.Buyer.Id != user.Id))
+			if (purchase == null || user.Role != Role.Admin && purchase.Buyer.Id != user.Id)
 				return NotFound();
 
 			return Ok(purchase);

@@ -7,14 +7,14 @@ using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Project_solution_test_task.Controller
+namespace Presentation_Layer.Controller
 {
 	[ApiController]
 	[Route("/")]
-	public class ViewController : ControllerBase
+	public class ControllerView : ControllerBase
 	{
 		private readonly string
-			muzzle = $"{Program.filePath}/View/wwwroot/miezzle/";
+			muzzle = $"{Program.filePath}/Presentation Layer (UI)/View/wwwroot/miezzle/";
 
 
 		[HttpGet("/")]
@@ -23,7 +23,7 @@ namespace Project_solution_test_task.Controller
 			return new ContentResult
 			{
 				ContentType = "text/html",
-				Content = System.IO.File.ReadAllText(muzzle + "miezzle.html"),
+				Content = File.ReadAllText(muzzle + "miezzle.html"),
 				StatusCode = 200
 			};
 		}

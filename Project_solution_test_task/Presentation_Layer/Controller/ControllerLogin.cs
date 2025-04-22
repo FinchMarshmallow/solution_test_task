@@ -1,11 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Project_solution_test_task.Model;
-using Project_solution_test_task.Service;
 using System.Data.Entity;
 using System.Text;
 
-namespace Project_solution_test_task.Controller
+namespace Presentation_Layer.Controller
 {
 	[Route("api/auth")]
 	[ApiController]
