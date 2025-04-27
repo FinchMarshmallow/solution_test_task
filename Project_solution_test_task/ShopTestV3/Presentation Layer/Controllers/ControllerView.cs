@@ -2,6 +2,8 @@
 using Core;
 using System;
 using System.Text;
+using LayerPresentation.Server;
+using System.IO;
 
 namespace PresentationLayer.Controllers
 {
@@ -9,12 +11,15 @@ namespace PresentationLayer.Controllers
 	[Route("/")]
 	public class ControllerView : ControllerBase
 	{
-		private readonly string
-			muzzle = $"{Config.filePath}/Layer_Presentation/View/wwwroot/miezzle/";
+		private static string
+
+			pos = $"{Server.FindFilePath()}Presentation Layer\\View\\wwwroot\\",
+
+			muzzle = $"{pos}miezzle\\";
 
 
-		[HttpGet("/")]
-		public ContentResult Muzzle()
+		[HttpGet()]
+		public IActionResult Muzzle()
 		{
 			return new ContentResult
 			{

@@ -11,25 +11,23 @@ namespace Main
 	{
 		static async Task Main(string[] args)
 		{
-			if (!Massage.QuestionUserBool("use automatic port ?"))
-			{
-				Config.port = Massage.GetInputInt("Enter port: ");
-			}
-			else
+			if (Massage.QuestionUserBool("use automatic port ?"))
 			{
 				Config.port = GetFreePort();
 			}
+			else
+			{
+				Config.port = Massage.GetInputInt("Enter port: ");
+			}
 
-			Config.url = $"https://localhost:{Config.port}/";
-
+			Config.url = $"localhost";
 			Config.filePath = FindFilePath();
+			Config.server = $"https://{Config.url}:{Config.port +1}/";
 
-			IServer server = new Server();
-
-			server.StartServer(Config.url, Config.filePath, Config.passwordJWT);
+			Server.StartServer(Config.url, Config.port, Config.filePath, Config.passwordJWT);
 
 			Massage.LogGood("Server -> ");
-			Massage.Log(Config.url);
+			Massage.LogBeautiful(Config.server);
 
 			await DontSleep();
 		}
@@ -43,7 +41,6 @@ namespace Main
 				Massage.Log("Server Dont Sleep");
 			}
 		}
-
 	
 		private static string FindFilePath()
 		{
@@ -56,7 +53,6 @@ namespace Main
 
 			return fullPart;
 		}
-
 
 		private static int GetFreePort() /* кастыль */ 
 		{

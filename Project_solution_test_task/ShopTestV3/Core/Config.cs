@@ -24,6 +24,7 @@ namespace Core
 			strOptions  = string.Empty,
 			filePath    = string.Empty,
 			url         = string.Empty,
+			server		= string.Empty,
 
 			// secret passwords
 

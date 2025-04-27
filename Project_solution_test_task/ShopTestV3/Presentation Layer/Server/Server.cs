@@ -36,61 +36,127 @@ using LayerPresentation;
 
 namespace LayerPresentation.Server
 {
-	public class Server : IServer
+	public class Server
 	{
-		public bool StartServer(string url, string filePath, string passwordJWT)
+		public static async void StartServer(string url, int port, string filePath, string passwordJWT)
 		{
-			IWebHost host = new WebHostBuilder()
-			.UseKestrel(options =>
+			Massage.Log($"Server starting...  \n\nurl http: http://{url}:{port}/ \n\nurl http: https://{url}:{port}/ \n\nfilePath: {filePath} \n\npasswordJWT: {passwordJWT}");
+
+
+
+			// builder ================================================================================================================================================================================================================================================================
+			var builder = WebApplication.CreateBuilder();
+
+			builder.WebHost.ConfigureKestrel(options =>
 			{
-				options.ConfigureHttpsDefaults(httpsOptions =>
+				options.ConfigureHttpsDefaults(https =>
 				{
-					httpsOptions.SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13;
+					https.SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13;
 				});
 			})
-			.UseUrls(url)
-			.UseWebRoot("wwwroot")
-			.ConfigureServices(services =>
+			.UseUrls($"http://{url}:{port}/", $"https://{url}:{port+1}/")
+			.UseWebRoot("wwwroot");
+
+			builder.Services.AddControllers();
+			builder.Services.AddControllers().AddJsonOptions(options =>
 			{
-				services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-				.AddCookie(options =>
-				{
-					options.Cookie.HttpOnly = true;
-					options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-					options.Cookie.SameSite = SameSiteMode.Strict;
-				});
+				options.JsonSerializerOptions.PropertyNamingPolicy = null;
+			});
 
-				services.AddControllers();
-			})
-			.Configure(app =>
+			builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+			.AddJwtBearer(options =>
 			{
-				app.UseHttpsRedirection();
-				app.UseStaticFiles(new StaticFileOptions
+				options.TokenValidationParameters = new TokenValidationParameters
 				{
-					OnPrepareResponse = file =>
-					{
-						Massage.Log($"user Get static files: \n\n{file.File.PhysicalPath}\n");
-					},
+					// указывает, будет ли валидироваться издатель при валидации токена
+					ValidateIssuer = true,
+					// строка, представляющая издателя
+					ValidIssuer = AuthOptions.ISSUER,
+					// будет ли валидироваться потребитель токена
+					ValidateAudience = true,
+					// установка потребителя токена
+					ValidAudience = AuthOptions.AUDIENCE,
+					// будет ли валидироваться время существования
+					ValidateLifetime = true,
+					// установка ключа безопасности
+					IssuerSigningKey = AuthOptions.GetSymmetricSecurityKey(),
+					// валидация ключа безопасности
+					ValidateIssuerSigningKey = true,
+				};
+			});
 
-					FileProvider = new PhysicalFileProvider
-					(
-						Path.Combine(Directory.GetCurrentDirectory(), Config.filePath + "Layer_Presentation/View")
-					),
-					RequestPath = Config.filePath
-				});
-				app.UseRouting();
-				app.UseEndpoints(endpoints =>
-				{
-					endpoints.MapControllers();
-				});
 
+			builder.Services
+			.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+			.AddCookie(options =>
+			{
+				options.Cookie.HttpOnly = true;
+				options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+				options.Cookie.SameSite = SameSiteMode.Strict;
 			})
-			.SuppressStatusMessages(true)
-			.Build();
+			.Services
+			.AddControllers();
 
-			host.RunAsync();
+			builder.Services.AddControllers();
+			builder.Services.AddControllers().AddApplicationPart(typeof(Server).Assembly); ;
 
-			return true;
+
+
+			// WebApp ================================================================================================================================================================================================================================================================
+			var app = builder.Build();
+
+			app.UseHttpsRedirection();
+
+			app.UseStaticFiles(new StaticFileOptions
+			{
+				OnPrepareResponse = context =>
+				{
+					Massage.Log($"User GET static files: {context.File.PhysicalPath}");
+				},
+				FileProvider = new PhysicalFileProvider(FindFilePath() + "\\Presentation Layer\\View\\wwwroot\\"),
+				RequestPath = "/wwwroot"
+			});
+
+			app.UseAuthentication();
+			app.UseAuthorization();
+
+			app.UseRouting();
+
+			app.UseEndpoints(endpoints =>
+			{
+				endpoints.MapControllers();
+			});
+
+			//app.MapGet("/", () => "AAAAAAAAAA");
+
+			app.MapControllers();
+
+			//app.Map("/", () => Massage.Log("Get"));
+
+			await app.RunAsync();
 		}
+
+
+		public class AuthOptions
+		{
+			public const string ISSUER = "MyAuthServer";
+			public const string AUDIENCE = "MyAuthClient";
+			const string KEY = "mysupersecret_secretsecretsecretkey!123";
+			public static SymmetricSecurityKey GetSymmetricSecurityKey() =>
+				new SymmetricSecurityKey(Encoding.UTF8.GetBytes(KEY));
+		}
+
+		public static string FindFilePath()
+		{
+			string fullPart = AppDomain.CurrentDomain.BaseDirectory;
+			int binPos = fullPart.IndexOf("_Main");
+
+			fullPart = fullPart.Substring(0, binPos);
+
+			Massage.Log("project position: \n" + fullPart);
+
+			return fullPart;
+		}
+
 	}
 }
