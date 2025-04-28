@@ -13,5 +13,6 @@ namespace Core.Interfaces.Repository
 		public IUser? GetByEmail(string email);
 		public IUser? GetByPassword(string email);
 		public bool? PasswordCheck(string email, string password);
+		public string HashPassword(string password, string email, int id);
 	}
 }

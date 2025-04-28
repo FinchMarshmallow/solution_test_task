@@ -13,26 +13,31 @@ namespace LayerDataAccess.Migrations
 {
 	public static class DatabaseManager
 	{
-		public static AppDbContext context;
-
-		static DatabaseManager()
+		private static AppDbContext? сontext = null;
+		public static AppDbContext Сontext
 		{
-			while (context == null) InitializeDatabase(Config.strOptions);
+			get
+			{
+				while (сontext == null) InitializeDatabase(Config.strDatabaseOptions);
+				return сontext;
+			}
 		}
 
 		public static void InitializeDatabase(string strOptions)
 		{
+			Massage.Log("strOptions: " + strOptions);
+
 			DbContextOptionsBuilder<AppDbContext> options = new();
 			options.UseNpgsql(strOptions);
-			context = new(options.Options);
+			сontext = new(options.Options);
 
 			try
 			{
-				if (!context.Database.CanConnect())
+				if (!Сontext.Database.CanConnect())
 				{
-					Massage.Log("Creating database and tables...");
+					Massage.Log("Creating database and tables... ");
 
-					context.Database.EnsureCreated();
+					Сontext.Database.EnsureCreated();
 
 					Massage.Log("Database created successfully!");
 				}
@@ -57,7 +62,7 @@ namespace LayerDataAccess.Migrations
 			GenerationUsers(ran.Next(26, 84), Role.Default, ran);
 			GenerationUsers(ran.Next(4, 16), Role.Admin, ran);
 
-			DatabaseManager.context.SaveChanges();
+			Сontext?.SaveChanges();
 		}
 
 		//warning: cringe code
@@ -472,25 +477,31 @@ namespace LayerDataAccess.Migrations
 					passwordBuffer += paswordTokens[ran.Next(0, paswordTokens.Length)];
 				}
 
-				string hash = RepositoryUser.HashPassword(passwordBuffer, email, context.Users.Max(u => u.Id));
-
-				Console.WriteLine(email);
-				Console.WriteLine(role.ToString());
-				Console.WriteLine(hash);
-
-				User user = new User
+				if (сontext != null)
 				{
-					Email = email,
-					Role = role,
-					Password = hash,
-					Money = ran.Next(0, 9999)
-				};
+					string hash = RepositoryUser.PasswordHash(passwordBuffer, email, сontext.Users.Max(u => u.Id));
 
-				DatabaseManager.context.Users.Add(user);
+					Console.WriteLine(email);
+					Console.WriteLine(role.ToString());
+					Console.WriteLine(hash);
 
-				Console.WriteLine($"email: {user.Email},{new string(' ', (int)Math.Clamp(34 - user.Email.Length, 4, 34))}password: {passwordBuffer}");
+					User user = new User
+					{
+						Email = email,
+						Role = role,
+						Password = hash,
+						Money = ran.Next(0, 9999)
+					};
 
-				passwordBuffer = string.Empty;
+
+
+					Сontext?.Users.Add(user);
+
+					Console.WriteLine($"email: {user.Email},{new string(' ', (int)Math.Clamp(34 - user.Email.Length, 4, 34))}password: {passwordBuffer}");
+
+					passwordBuffer = string.Empty;
+
+				}
 			}
 		}
 	}

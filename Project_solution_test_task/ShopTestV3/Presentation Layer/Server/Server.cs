@@ -49,17 +49,24 @@ namespace LayerPresentation.Server
 			Massage.Log($"Server starting...  \n\nurl http: http://{url}:{port}/ \n\nurl http: https://{url}:{port}/ \n\nfilePath: {filePath} \n\npasswordJWT: {passwordJWT}");
 
 			// builder ================================================================================================================================================================================================================================================================
-			var builder = WebApplication.CreateBuilder();
+
+			var webAppOptions = new WebApplicationOptions
+			{
+				WebRootPath = "wwwroot"
+			};
+
+			var builder = WebApplication.CreateBuilder(webAppOptions);
 
 			builder.WebHost.ConfigureKestrel(options =>
 			{
 				options.ConfigureHttpsDefaults(https =>
 				{
-					https.SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13;
+					https.SslProtocols = System.Security.Authentication.SslProtocols.Tls12 |
+									   System.Security.Authentication.SslProtocols.Tls13;
 				});
-			})
-			.UseUrls($"http://{url}:{port}/", $"https://{url}:{port + 1}/")
-			.UseWebRoot("wwwroot");
+			});
+
+			builder.WebHost.UseUrls($"http://{url}:{port}/", $"https://{url}:{port + 1}/");
 
 			// JWT -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 			builder.Services.AddControllers().AddJsonOptions(options =>
@@ -174,7 +181,9 @@ namespace LayerPresentation.Server
 
 			app.MapControllers();
 
+
 			UnitOfWork.Users.GetByEmail("");
+
 
 			await app.RunAsync();
 		}

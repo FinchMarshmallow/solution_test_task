@@ -8,10 +8,11 @@ using System.Linq;
 using System.Runtime.Serialization.DataContracts;
 using System.Text;
 using System.Threading.Tasks;
-
+using System;
 using LayerDataAccess.Model;
 using LayerDataAccess;
 using System.Security.Cryptography;
+using System.Net.Sockets;
 
 namespace LayerDataAccess.Repositories
 {
@@ -25,7 +26,7 @@ namespace LayerDataAccess.Repositories
 				return false;
 			}
 
-			DatabaseManager.context.Users.Add(new User()
+			DatabaseManager.Сontext.Users.Add(new User()
 			{
 				Email = email,
 				Password = password,
@@ -35,14 +36,14 @@ namespace LayerDataAccess.Repositories
 			Massage.LogGood("add user");
 			Massage.Log($"email: {email} \npassword: {password} \nrole: {role.ToString()}");
 
-			DatabaseManager.context.SaveChanges();
+			DatabaseManager.Сontext.SaveChanges();
 
 			return true;
 		}
 
 		public IUser? GetByEmail(string email)
 		{
-			User? user = DatabaseManager.context.Users.FirstOrDefault(user => user.Email == email);
+			User? user = DatabaseManager.Сontext.Users.FirstOrDefault(user => user.Email == email);
 
 			if (user == null) Massage.Log("user find by email: " + email);
 			else
@@ -53,7 +54,7 @@ namespace LayerDataAccess.Repositories
 
 		public IUser? GetByPassword(string password)
 		{
-			User? user = DatabaseManager.context.Users.FirstOrDefault(user => user.Password == password);
+			User? user = DatabaseManager.Сontext.Users.FirstOrDefault(user => user.Password == password);
 
 			if (user == null) Massage.Log("user find by password: " + password);
 			else
@@ -68,12 +69,14 @@ namespace LayerDataAccess.Repositories
 
 			if (user == null) return null;
 
-			if (user.Password != HashPassword(password, user.Email, user.Id)) return false;
+			if (user.Password != PasswordHash(password, user.Email, user.Id)) return false;
 
 			return true;
 		}
 
-		public static string HashPassword(string password, string email, int id)
+		public string HashPassword(string password, string email, int id) => PasswordHash(password, email, id);
+
+		public static string PasswordHash(string password, string email, int id)
 		{
 			int randomGrain = id;
 
@@ -81,7 +84,7 @@ namespace LayerDataAccess.Repositories
 				randomGrain += (char)password[i];
 
 			for (int i = 0; i < Config.passwordHash.Length; i++)
-				randomGrain += (char)password[i];
+				randomGrain += (char)Config.passwordHash[i];
 
 			Random random = new Random(randomGrain);
 
@@ -105,26 +108,22 @@ namespace LayerDataAccess.Repositories
 
 			for (int i = 0; i < mixingOrder.Length; i++)
 			{
-				Massage.Log(Convert.ToBase64String(resyldHash));
-
 				switch (mixingOrder[i])
 				{
 					case 0:
-
 						if (counterId < saltId.Length)
 						{
+							resyldHash[i] = saltId[counterId];
 							counterId++;
-							saltPasswordHash[i] = saltId[counterId];
 						}
 						else
 							goto case 1;
 						break;
 					case 1:
-
 						if (counterEmail < saltEmail.Length)
 						{
+							resyldHash[i] = saltEmail[counterEmail];
 							counterEmail++;
-							saltPasswordHash[i] = saltEmail[counterEmail];
 						}
 						else
 							goto case 2;
@@ -132,8 +131,8 @@ namespace LayerDataAccess.Repositories
 					case 2:
 						if (counterPassword < saltPassword.Length)
 						{
+							resyldHash[i] = saltPassword[counterPassword];
 							counterPassword++;
-							saltPasswordHash[i] = saltPassword[counterPassword];
 						}
 						else
 							goto case 0;
@@ -145,7 +144,7 @@ namespace LayerDataAccess.Repositories
 				}
 			}
 
-			return Convert.ToBase64String(new HMACSHA256(resyldHash).ComputeHash(saltId));
+			return Convert.ToBase64String(new HMACSHA256(Encoding.UTF8.GetBytes(password)).ComputeHash(Encoding.UTF8.GetBytes(Config.passwordHash)));
 		}
 	}
 }

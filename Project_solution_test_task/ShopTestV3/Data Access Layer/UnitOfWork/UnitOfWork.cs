@@ -26,12 +26,12 @@ namespace LayerDataAccess.UnitOfWork
 
 		public static int SaveChanges()
 		{
-			return DatabaseManager.context.SaveChanges();
+			return DatabaseManager.Сontext.SaveChanges();
 		}
 
 		public static void Dispose()
 		{
-			DatabaseManager.context.Dispose();
+			DatabaseManager.Сontext.Dispose();
 		}
 	}
 }

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using LayerDataAccess;
 using LayerDataAccess.Repositories;
 using LayerDataAccess.UnitOfWork;
+using Core;
 
 namespace LayerPresentation.Controllers
 {
@@ -19,19 +20,25 @@ namespace LayerPresentation.Controllers
 	public class LoginController : ControllerBase
 	{
 
-		[HttpGet("login{email}/{password}")]
+		[HttpGet("login/{email}/{password}")]
 		public IActionResult Login(string email, string password)
 		{
 			bool? result = UnitOfWork.Users.PasswordCheck(email, password);
+
+			Massage.LogWarning(result.ToString());
 
 			if (result == null)
 			{
 				return Ok("email not found");
 			}
 			else if (result.HasValue)
-				return Ok("password invalid");
-
+			{
+				Massage.Log(UnitOfWork.Users.GetByEmail(email).Password);
+				Massage.Log(UnitOfWork.Users.HashPassword(password, email, UnitOfWork.Users.GetByEmail(email).Id));
 			return Ok("How did you guess?!");
+			}
+
+				return Ok("password invalid");
 		}
 	}
 }
