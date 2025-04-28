@@ -33,6 +33,12 @@ using Microsoft.IdentityModel.Tokens;
 using Core.Interfaces;
 using Core;
 using LayerPresentation;
+using Microsoft.AspNetCore.Authorization;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.OpenApi.Models;
+using LayerDataAccess.Repositories;
+using LayerDataAccess.UnitOfWork;
 
 namespace LayerPresentation.Server
 {
@@ -41,8 +47,6 @@ namespace LayerPresentation.Server
 		public static async void StartServer(string url, int port, string filePath, string passwordJWT)
 		{
 			Massage.Log($"Server starting...  \n\nurl http: http://{url}:{port}/ \n\nurl http: https://{url}:{port}/ \n\nfilePath: {filePath} \n\npasswordJWT: {passwordJWT}");
-
-
 
 			// builder ================================================================================================================================================================================================================================================================
 			var builder = WebApplication.CreateBuilder();
@@ -54,10 +58,10 @@ namespace LayerPresentation.Server
 					https.SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13;
 				});
 			})
-			.UseUrls($"http://{url}:{port}/", $"https://{url}:{port+1}/")
+			.UseUrls($"http://{url}:{port}/", $"https://{url}:{port + 1}/")
 			.UseWebRoot("wwwroot");
 
-			builder.Services.AddControllers();
+			// JWT -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 			builder.Services.AddControllers().AddJsonOptions(options =>
 			{
 				options.JsonSerializerOptions.PropertyNamingPolicy = null;
@@ -85,7 +89,6 @@ namespace LayerPresentation.Server
 				};
 			});
 
-
 			builder.Services
 			.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
 			.AddCookie(options =>
@@ -97,16 +100,38 @@ namespace LayerPresentation.Server
 			.Services
 			.AddControllers();
 
+			// Swagger -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+			builder.Services.AddEndpointsApiExplorer();
+			builder.Services.AddSwaggerGen();
+
+			builder.Services.AddSwaggerGen(options =>
+			{
+				options.SwaggerDoc("v1", new OpenApiInfo
+				{
+					Version = "v1",
+					Title = "ToDo API",
+					Description = "An ASP.NET Core Web API for managing ToDo items",
+					TermsOfService = new Uri("https://example.com/terms"),
+					Contact = new OpenApiContact
+					{
+						Name = "Example Contact",
+						Url = new Uri("https://example.com/contact")
+					},
+					License = new OpenApiLicense
+					{
+						Name = "Example License",
+						Url = new Uri("https://example.com/license")
+					}
+				});
+			});
+
 			builder.Services.AddControllers();
-			builder.Services.AddControllers().AddApplicationPart(typeof(Server).Assembly); ;
-
-
+			builder.Services.AddControllers().AddApplicationPart(typeof(Server).Assembly);
 
 			// WebApp ================================================================================================================================================================================================================================================================
 			var app = builder.Build();
 
 			app.UseHttpsRedirection();
-
 			app.UseStaticFiles(new StaticFileOptions
 			{
 				OnPrepareResponse = context =>
@@ -117,21 +142,39 @@ namespace LayerPresentation.Server
 				RequestPath = "/wwwroot"
 			});
 
+			// JWT -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 			app.UseAuthentication();
 			app.UseAuthorization();
-
 			app.UseRouting();
+			//app.Map("/login/{username}", (string username) =>
+			//{
+			//	var claims = new List<Claim> {new Claim(ClaimTypes.Name, username) };
+				
+			//	var jwt = new JwtSecurityToken	/* создаем JWT-токен */
+			//	(
+			//		issuer: AuthOptions.ISSUER,
+			//		audience: AuthOptions.AUDIENCE,
+			//		claims: claims,
+			//		expires: DateTime.UtcNow.Add(TimeSpan.FromMinutes(2)),
+			//		signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256)
+			//	);
 
-			app.UseEndpoints(endpoints =>
+			//	return new JwtSecurityTokenHandler().WriteToken(jwt);
+			//});
+
+			//app.Map("/data", [Authorize] () => new { message = "Hello World!" });
+
+			// Swagger -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+			app.UseSwagger();
+			app.UseSwaggerUI(options => // UseSwaggerUI is called only in Development.
 			{
-				endpoints.MapControllers();
+				options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+				options.RoutePrefix = string.Empty;
 			});
-
-			//app.MapGet("/", () => "AAAAAAAAAA");
 
 			app.MapControllers();
 
-			//app.Map("/", () => Massage.Log("Get"));
+			UnitOfWork.Users.GetByEmail("");
 
 			await app.RunAsync();
 		}
@@ -141,9 +184,12 @@ namespace LayerPresentation.Server
 		{
 			public const string ISSUER = "MyAuthServer";
 			public const string AUDIENCE = "MyAuthClient";
-			const string KEY = "mysupersecret_secretsecretsecretkey!123";
-			public static SymmetricSecurityKey GetSymmetricSecurityKey() =>
-				new SymmetricSecurityKey(Encoding.UTF8.GetBytes(KEY));
+			const string KEY = Config.passwordJWT;
+
+			private static SymmetricSecurityKey SymmetricKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(KEY));
+			public static SymmetricSecurityKey GetSymmetricSecurityKey() => SymmetricKey;
+
+
 		}
 
 		public static string FindFilePath()
@@ -157,6 +203,5 @@ namespace LayerPresentation.Server
 
 			return fullPart;
 		}
-
 	}
 }

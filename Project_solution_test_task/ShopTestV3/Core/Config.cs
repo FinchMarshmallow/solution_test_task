@@ -24,11 +24,13 @@ namespace Core
 			strOptions  = string.Empty,
 			filePath    = string.Empty,
 			url         = string.Empty,
-			server		= string.Empty,
+			server      = string.Empty;
 
-			// secret passwords
+		public const string passwordJWT = "Ax>M*=5(p[r1;kZB_9+234!@#$(Ad^(9yh9jQwE880-769cd68$vd./m?";
 
-			passwordJWT = "QwEr1234!@#$";
+		public const string passwordHash = "[rF@p80-7jv!@#$m?(AGB./_($uo8$vd#69d^(9yh9j[po-)jQwE8Jcd6";
+
+
 
 
 		public static int port;

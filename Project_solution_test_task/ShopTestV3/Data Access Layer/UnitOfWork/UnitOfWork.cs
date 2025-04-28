@@ -3,34 +3,35 @@ using Core.Interfaces;
 using LayerDataAccess.Data_Access_Layer.Repositories;
 using LayerDataAccess.Migrations;
 using LayerDataAccess.Repositories;
+using Core;
 
 namespace LayerDataAccess.UnitOfWork
 {
-	public class UnitOfWork : IUnitOfWork
+	public static class UnitOfWork
 	{
-		private RepositoryComment _comment = new();
-		private RepositoryProductCard _productCard = new();
-		private RepositoryPurchase _purchase = new();
-		private RepositoryUser _user = new();
+		private static RepositoryComment _comment = new();
+		private static RepositoryProductCard _productCard = new();
+		private static RepositoryPurchase _purchase = new();
+		private static RepositoryUser _user = new();
 
-		public IRepositoryComment Coments => (IRepositoryComment)_comment;
-		public IRepositoryProductCard ProductCards => (IRepositoryProductCard)_productCard;
-		public IRepositoryPurchase Purchases => (IRepositoryPurchase)_purchase;
-		public IRepositoryUser Users => (IRepositoryUser)_user;
+		public static IRepositoryComment Coments => (IRepositoryComment)_comment;
+		public static IRepositoryProductCard ProductCards => (IRepositoryProductCard)_productCard;
+		public static IRepositoryPurchase Purchases => (IRepositoryPurchase)_purchase;
+		public static IRepositoryUser Users => (IRepositoryUser)_user;
 
-		public int SaveChanges()
+		static UnitOfWork()
 		{
-			return DatabaseManager.Сontext.SaveChanges();
+			
 		}
 
-		public void Init(string strOptions)
+		public static int SaveChanges()
 		{
-			DatabaseManager.strOptions = strOptions;
+			return DatabaseManager.context.SaveChanges();
 		}
 
-		public void Dispose()
+		public static void Dispose()
 		{
-			DatabaseManager.Сontext.Dispose();
+			DatabaseManager.context.Dispose();
 		}
 	}
 }

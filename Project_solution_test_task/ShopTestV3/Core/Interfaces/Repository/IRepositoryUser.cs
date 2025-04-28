@@ -12,5 +12,6 @@ namespace Core.Interfaces.Repository
 		public bool AddUser(string email, string password, Role role);
 		public IUser? GetByEmail(string email);
 		public IUser? GetByPassword(string email);
+		public bool? PasswordCheck(string email, string password);
 	}
 }

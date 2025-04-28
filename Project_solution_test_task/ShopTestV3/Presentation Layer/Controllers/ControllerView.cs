@@ -17,7 +17,6 @@ namespace PresentationLayer.Controllers
 
 			muzzle = $"{pos}miezzle\\";
 
-
 		[HttpGet()]
 		public IActionResult Muzzle()
 		{

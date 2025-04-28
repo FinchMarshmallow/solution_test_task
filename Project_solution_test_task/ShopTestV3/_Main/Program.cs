@@ -29,6 +29,7 @@ namespace Main
 			Massage.LogGood("Server -> ");
 			Massage.LogBeautiful(Config.server);
 
+
 			await DontSleep();
 		}
 
