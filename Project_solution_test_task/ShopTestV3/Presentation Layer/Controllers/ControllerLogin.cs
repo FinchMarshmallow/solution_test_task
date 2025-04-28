@@ -26,7 +26,7 @@ namespace LayerPresentation.Controllers
 	public class LoginController : ControllerBase
 	{
 
-		[HttpPost("/{email}/{password}")]
+		[HttpPost("Login/{email}/{password}")]
 		public IActionResult Login(string email, string password)
 		{
 			bool? result = UnitOfWork.Users.PasswordCheck(email, password);
@@ -56,7 +56,7 @@ namespace LayerPresentation.Controllers
 			});
 		}
 
-		[HttpPost("/{email}/{password}/{role}")]
+		[HttpPost("SungUp/{email}/{password}/{role}")]
 		public IActionResult SungUp(string email, string password, string role)
 		{
 			IUser? user = UnitOfWork.Users.GetByEmail(email);
