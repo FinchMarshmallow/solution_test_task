@@ -12,6 +12,12 @@ using LayerDataAccess;
 using LayerDataAccess.Repositories;
 using LayerDataAccess.UnitOfWork;
 using Core;
+using static LayerPresentation.Server.Server;
+using System;
+using Core.Interfaces.Models;
+using Microsoft.AspNetCore.Authentication.OAuth;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using PresentationLayer.Services;
 
 namespace LayerPresentation.Controllers
 {
@@ -20,25 +26,61 @@ namespace LayerPresentation.Controllers
 	public class LoginController : ControllerBase
 	{
 
-		[HttpGet("login/{email}/{password}")]
+		[HttpPost("/{email}/{password}")]
 		public IActionResult Login(string email, string password)
 		{
 			bool? result = UnitOfWork.Users.PasswordCheck(email, password);
 
-			Massage.LogWarning(result.ToString());
-
 			if (result == null)
 			{
-				return Ok("email not found");
+
+				return NotFound("incorrect email");
 			}
-			else if (result.HasValue)
+			else if (!result.HasValue)
 			{
-				Massage.Log(UnitOfWork.Users.GetByEmail(email).Password);
-				Massage.Log(UnitOfWork.Users.HashPassword(password, email, UnitOfWork.Users.GetByEmail(email).Id));
-			return Ok("How did you guess?!");
+				return BadRequest("good email, incorrect password");
 			}
 
-				return Ok("password invalid");
+			IUser? user = UnitOfWork.Users.GetByEmail(email);
+
+			if (user == null) return BadRequest();
+
+
+			var token = ServiceJWT.GenerateJwtToken(user);
+
+			return Ok(new
+			{
+				access_token = token,
+				username = user.Email,
+				role = user.Role.ToString()
+			});
+		}
+
+		[HttpPost("/{email}/{password}/{role}")]
+		public IActionResult SungUp(string email, string password, string role)
+		{
+			IUser? user = UnitOfWork.Users.GetByEmail(email);
+
+			if (user == null)
+			{
+				return BadRequest("this email is busy");
+			}
+
+			Role roleUser = Role.Default;
+
+			if (role == "Admin")
+				roleUser = Role.Admin;
+
+			UnitOfWork.Users.AddUser(email, password, roleUser);
+
+			var token = ServiceJWT.GenerateJwtToken(user);
+
+			return Ok(new
+			{
+				access_token = token,
+				username = user.Email,
+				role = user.Role.ToString()
+			});
 		}
 	}
 }

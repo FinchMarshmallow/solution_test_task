@@ -39,6 +39,7 @@ using System.Security.Claims;
 using Microsoft.OpenApi.Models;
 using LayerDataAccess.Repositories;
 using LayerDataAccess.UnitOfWork;
+using PresentationLayer.Services;
 
 namespace LayerPresentation.Server
 {
@@ -116,19 +117,9 @@ namespace LayerPresentation.Server
 				options.SwaggerDoc("v1", new OpenApiInfo
 				{
 					Version = "v1",
-					Title = "ToDo API",
-					Description = "An ASP.NET Core Web API for managing ToDo items",
-					TermsOfService = new Uri("https://example.com/terms"),
-					Contact = new OpenApiContact
-					{
-						Name = "Example Contact",
-						Url = new Uri("https://example.com/contact")
-					},
-					License = new OpenApiLicense
-					{
-						Name = "Example License",
-						Url = new Uri("https://example.com/license")
-					}
+					Title = "Test task shop API",
+					Description = "description for the best store in the world",
+					TermsOfService = new Uri("https://en.wikipedia.org/wiki/Cat"),
 				});
 			});
 
@@ -186,19 +177,6 @@ namespace LayerPresentation.Server
 
 
 			await app.RunAsync();
-		}
-
-
-		public class AuthOptions
-		{
-			public const string ISSUER = "MyAuthServer";
-			public const string AUDIENCE = "MyAuthClient";
-			const string KEY = Config.passwordJWT;
-
-			private static SymmetricSecurityKey SymmetricKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(KEY));
-			public static SymmetricSecurityKey GetSymmetricSecurityKey() => SymmetricKey;
-
-
 		}
 
 		public static string FindFilePath()
