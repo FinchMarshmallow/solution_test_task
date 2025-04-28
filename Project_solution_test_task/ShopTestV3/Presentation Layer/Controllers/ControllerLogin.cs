@@ -61,7 +61,7 @@ namespace LayerPresentation.Controllers
 		{
 			IUser? user = UnitOfWork.Users.GetByEmail(email);
 
-			if (user == null)
+			if (user != null)
 			{
 				return BadRequest("this email is busy");
 			}
@@ -72,6 +72,13 @@ namespace LayerPresentation.Controllers
 				roleUser = Role.Admin;
 
 			UnitOfWork.Users.AddUser(email, password, roleUser);
+
+			user = UnitOfWork.Users.GetByEmail(email);
+
+			if (user == null)
+			{
+				return BadRequest("email was not created");
+			}
 
 			var token = ServiceJWT.GenerateJwtToken(user);
 
