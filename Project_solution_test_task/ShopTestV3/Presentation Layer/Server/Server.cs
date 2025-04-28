@@ -144,23 +144,6 @@ namespace LayerPresentation.Server
 			app.UseAuthentication();
 			app.UseAuthorization();
 			app.UseRouting();
-			//app.Map("/login/{username}", (string username) =>
-			//{
-			//	var claims = new List<Claim> {new Claim(ClaimTypes.Name, username) };
-				
-			//	var jwt = new JwtSecurityToken	/* создаем JWT-токен */
-			//	(
-			//		issuer: AuthOptions.ISSUER,
-			//		audience: AuthOptions.AUDIENCE,
-			//		claims: claims,
-			//		expires: DateTime.UtcNow.Add(TimeSpan.FromMinutes(2)),
-			//		signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256)
-			//	);
-
-			//	return new JwtSecurityTokenHandler().WriteToken(jwt);
-			//});
-
-			//app.Map("/data", [Authorize] () => new { message = "Hello World!" });
 
 			// Swagger -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 			app.UseSwagger();
